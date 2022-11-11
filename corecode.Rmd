@@ -25,7 +25,33 @@ library(moments)
 
 ```{r Activationg Data}
 read.csv("^VXO.csv")
+read.csv("MCD.csv")
 ```
+###############################################
+#####CALCULATION PRICE OF CO-SKEWNESS RISK#####
+###############################################
+
+```{r, Risk-Neutral Second Moment}
+data_VIX <- read.csv("^VXO.csv")
+data_VIX <- as.data.frame(data_VIX) 
+data_VIX$Date <- as.Date(data_VIX$Date) 
+data_VIX$Adj.Close <- as.numeric(data_VIX$Adj.Close)
+data_VIX <- select(data_VIX, -c(Open, Low, High, Close, Volume)) %>% arrange(Date) %>% filter(Date < "2012-12-31") %>% mutate(Indexed=Adj.Close/100) %>% mutate(Square=Indexed^2)
+
+```
+
+```{r}
+library(psych)
+table1_data<-describe(data_VIX$Square)
+plot(data_VIX$Date,data_VIX$Square, type="l")
+```
+
+
+
+
+
+
+
 
 
 
