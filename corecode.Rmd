@@ -21,31 +21,107 @@ library(readxl)
 library(fmdates)
 library(zoo)
 library(moments)
+suppressPackageStartupMessages({library(lubridate)})
+library(xts)
+library(HARModel)
+if(!require('highfrequency')) {
+    install.packages('highfrequency')
+    library('highfrequency')
+}
+library(RcppRoll)
 ```
 
-```{r Activationg Data}
-read.csv("^VXO.csv")
-read.csv("MCD.csv")
-```
 ###############################################
 #####CALCULATION PRICE OF CO-SKEWNESS RISK#####
 ###############################################
 
-```{r, Risk-Neutral Second Moment}
-data_VIX <- read.csv("^VXO.csv")
-data_VIX <- as.data.frame(data_VIX) 
-data_VIX$Date <- as.Date(data_VIX$Date) 
+```{r Risk-Neutral Second Moment}
+data_VIX <- as.data.frame(read.csv("^VXO.csv"))
+
+data_VIX <- data_VIX %>% mutate(Date = ymd(Date))
+data_VIX$numday <- as.numeric(format(as.Date(data_VIX$Date), '%Y%m%d'))
+
+#Calculated risk-neutral second moment just taking square -- SqPrice -- and (x/100)^2 -- Square -- 
 data_VIX$Adj.Close <- as.numeric(data_VIX$Adj.Close)
-data_VIX <- select(data_VIX, -c(Open, Low, High, Close, Volume)) %>% arrange(Date) %>% filter(Date < "2012-12-31") %>% mutate(Indexed=Adj.Close/100) %>% mutate(Square=Indexed^2) %>% mutate(SqPrice=Adj.Close^2)
+data_VIX <- select(data_VIX, -c(Open, Low, High, Close, Volume)) %>% arrange(data_VIX,Adj.Close) %>% filter(numday < 20210901) %>% mutate(Indexed=Adj.Close/100) %>% mutate(Square=Indexed^2) %>% mutate(SqPrice=Adj.Close^2)  
+
+#Just a check for data: should be 0 NA and num for Adj.Close
+sum(is.na(data_VIX))
+sapply(data_VIX,class)
 
 ```
 
-```{r}
+
+```{r Physical second moment}
+#Implementing formula 19 to calculate daily varience
+
+#Changing data formats
+data_SNP500 <- as.data.frame(read.csv("MCD.csv"))
+
+data_SNP500 <- data_SNP500 %>% mutate(Date = ymd(Date)) 
+data_SNP500$numday <- as.numeric(format(as.Date(data_SNP500$Date), '%Y%m%d'))
+
+data_SNP500 <- data_SNP500 %>% select(-c(Close, Volume)) %>% filter(numday >= 19860203) %>% filter(numday <= 20210831)
+
+#Formula 19 from the paper
+data_SNP500 <- data_SNP500 %>% mutate(Day_Vol = (log(High/Open) * (log(High/Open) - log(Adj.Close/Open))) + (log(Low/Open) * (log(Low/Open) - log(Adj.Close/Open))))
+
+#Calculating volatilities weekly and monthly based on formula 18
+#################################################################
+#################################################################
+##################HERE IS PROBLEM OCCURING#######################
+#################################################################
+#################################################################
+
+#I want to implement formula 18 here, so that I have weekly and Monthly volatility. I tried to sum lagged values but the whole column was NA. Now I am trying to use roll_sum, but I have strange error that throws me away. Also tried rollsum, but it calculated in a wrong way by also taking at the beggining variables from the end of the table....
+data_SNP500 <- data_SNP500 %>% arrange(numday) %>% mutate(Wek_Vol = 0) %>% mutate(Wek_Vol = roll_sum(Day_Vol,-4,fill=0)) 
+
+#Getting data for HAR model: filtering until 1996 (10 year window)
+win_120 <- data_SNP500 %>% filter(numday <=19960203)
+
+HAR_data <- as.xts(win_120$Day_Vol, order.by = win_120$Date)
+x <- HARmodel(data = HAR_data , periods = c(1,4,20), RVest = c("rCov"), type = "HAR", h = 1, transform = NULL, inputType = "RM")
+summary(x)
+
+#calculating volatilities based on estimates from HAR model: formula 17
+coefs <- coefficients(x)
+
+#This How I want this to look like
+data_SNP500 <- data_SNP500 %>% mutate(estimated_volatility = coefs[1] + coefs[2]*rollsum(Day_Vol,1) + coefs[3]*Wek_Vol + coefs[4]*Mon_Vol)
+```
+
+```{r Example for HAR model}
+# Example 1: HAR
+# Forecasting daily Realized volatility for the S&P 500 using the basic HARmodel: HAR
+library(xts)
+RVSPY <- as.xts(SPYRM$RV5, order.by = SPYRM$DT)
+
+x <- HARmodel(data = RVSPY , periods = c(1,5,22), RVest = c("rCov"),
+              type = "HAR", h = 1, transform = NULL, inputType = "RM")
+class(x)
+x
+summary(x)
+plot(x)
+predict(x)
+```
+
+```{r JUNK}
+#JUNK
+
+
 library(psych)
 table1_data<-describe(data_VIX$Square)
 plot(data_VIX$Date,data_VIX$Square, type="l")
 table1.2_data<-describe(data_VIX$SqPrice)
 plot(data_VIX$Date,data_VIX$SqPrice, type="l")
+
+n <- 15
+x <- rnorm(n)
+weights <- 0.9 ^ (n:1)
+
+# rolling sums with complete windows
+roll_sum(x, 5)
+x
 ```
 
 
