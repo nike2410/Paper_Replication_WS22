@@ -6,12 +6,9 @@ date: "2022-10-18"
 ```{r Activating Packages} 
 #activating packages
 require(PerformanceAnalytics)
-require(timeSeries)
-require(quantstrat)
 require(xtable)
 require(kableExtra)
 require(FinancialInstrument)
-require(blotter)
 require(quantmod)
 library(lubridate)
 library(dplyr)
@@ -28,7 +25,7 @@ if(!require('highfrequency')) {
     install.packages('highfrequency')
     library('highfrequency')
 }
-library(RcppRoll)
+library(slider)
 ```
 
 ###############################################
@@ -63,31 +60,20 @@ data_SNP500$numday <- as.numeric(format(as.Date(data_SNP500$Date), '%Y%m%d'))
 
 data_SNP500 <- data_SNP500 %>% select(-c(Close, Volume)) %>% filter(numday >= 19860203) %>% filter(numday <= 20210831)
 
-#Formula 19 from the paper
-data_SNP500 <- data_SNP500 %>% mutate(Day_Vol = (log(High/Open) * (log(High/Open) - log(Adj.Close/Open))) + (log(Low/Open) * (log(Low/Open) - log(Adj.Close/Open))))
+#Formula 19 from the paper (calculation of implied volatility)
+data_SNP500 <- data_SNP500 %>%
+  mutate(Day_Vol = (log(High/Open) * (log(High/Open) - log(Adj.Close/Open))) + (log(Low/Open) * (log(Low/Open) - log(Adj.Close/Open))))
 
-#Calculating volatilities weekly and monthly based on formula 18
-#################################################################
-#################################################################
-##################HERE IS PROBLEM OCCURING#######################
-#################################################################
-#################################################################
+#Formula 18 (calculation of daily, weekly, monthly volatilities)
+data_SNP500 <- data_SNP500 %>% 
+  mutate(Wek_Vol = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 4, .complete = TRUE)) %>%
+  mutate(Mon_Vol = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 20, .complete = TRUE))
 
-#I want to implement formula 18 here, so that I have weekly and Monthly volatility. I tried to sum lagged values but the whole column was NA. Now I am trying to use roll_sum, but I have strange error that throws me away. Also tried rollsum, but it calculated in a wrong way by also taking at the beggining variables from the end of the table....
-data_SNP500 <- data_SNP500 %>% arrange(numday) %>% mutate(Wek_Vol = 0) %>% mutate(Wek_Vol = roll_sum(Day_Vol,-4,fill=0)) 
+#HAR model for Formula 17. From this model we will get coefficients to calculate the estimation of physical second moments.
 
-#Getting data for HAR model: filtering until 1996 (10 year window)
-win_120 <- data_SNP500 %>% filter(numday <=19960203)
+################################################################
+#I AM NOW HERE, trying to implement recursive regression
 
-HAR_data <- as.xts(win_120$Day_Vol, order.by = win_120$Date)
-x <- HARmodel(data = HAR_data , periods = c(1,4,20), RVest = c("rCov"), type = "HAR", h = 1, transform = NULL, inputType = "RM")
-summary(x)
-
-#calculating volatilities based on estimates from HAR model: formula 17
-coefs <- coefficients(x)
-
-#This How I want this to look like
-data_SNP500 <- data_SNP500 %>% mutate(estimated_volatility = coefs[1] + coefs[2]*rollsum(Day_Vol,1) + coefs[3]*Wek_Vol + coefs[4]*Mon_Vol)
 ```
 
 ```{r Example for HAR model}
@@ -122,6 +108,23 @@ weights <- 0.9 ^ (n:1)
 # rolling sums with complete windows
 roll_sum(x, 5)
 x
+
+#Getting data for HAR model: filtering until 1996 (10 year window)
+win_120 <- data_SNP500 %>% filter(numday <=19960203)
+
+which(data_SNP500 = (head(data_SNP500$numday,1)+100000), arr.ind = TRUE)
+
+a1
+
+HAR_data <- as.xts(win_120$Day_Vol, order.by = win_120$Date)
+x <- HARmodel(data = HAR_data , periods = c(1,4,20), RVest = c("rCov"), type = "HAR", h = 1, transform = NULL, inputType = "RM")
+summary(x)
+
+#calculating volatilities based on estimates from HAR model: formula 17
+coefs <- coefficients(x)
+
+#This How I want this to look like
+data_SNP500 <- data_SNP500 %>% mutate(estimated_volatility = coefs[1] + coefs[2]*rollsum(Day_Vol,1) + coefs[3]*Wek_Vol + coefs[4]*Mon_Vol)
 ```
 
 
