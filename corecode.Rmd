@@ -5,11 +5,7 @@ date: "2022-10-18"
 ---
 ```{r Activating Packages} 
 #activating packages
-require(PerformanceAnalytics)
-require(xtable)
-require(kableExtra)
-require(FinancialInstrument)
-require(quantmod)
+
 library(lubridate)
 library(dplyr)
 library(tidyr)
@@ -26,6 +22,9 @@ if(!require('highfrequency')) {
     library('highfrequency')
 }
 library(slider)
+library(broom)
+library(tidyverse)
+library(psych)
 ```
 
 ###############################################
@@ -36,41 +35,184 @@ library(slider)
 data_VIX <- as.data.frame(read.csv("^VXO.csv"))
 
 data_VIX <- data_VIX %>% mutate(Date = ymd(Date))
+data_VIX$Year = as.numeric(format(as.Date(data_VIX$Date, format='%Y%m%d'),"%Y"))
+data_VIX$Month = as.numeric(format(as.Date(data_VIX$Date, format='%Y%m%d'),"%m")) 
+data_VIX$Day = as.numeric(format(as.Date(data_VIX$Date, format='%Y%m%d'),"%d"))
+
 data_VIX$numday <- as.numeric(format(as.Date(data_VIX$Date), '%Y%m%d'))
 
 #Calculated risk-neutral second moment just taking square -- SqPrice -- and (x/100)^2 -- Square -- 
 data_VIX$Adj.Close <- as.numeric(data_VIX$Adj.Close)
-data_VIX <- select(data_VIX, -c(Open, Low, High, Close, Volume)) %>% arrange(data_VIX,Adj.Close) %>% filter(numday < 20210901) %>% mutate(Indexed=Adj.Close/100) %>% mutate(Square=Indexed^2) %>% mutate(SqPrice=Adj.Close^2)  
-
-#Just a check for data: should be 0 NA and num for Adj.Close
-sum(is.na(data_VIX))
-sapply(data_VIX,class)
-
+data_VIX <- select(data_VIX, -c(Open, Low, High, Close, Volume)) %>% 
+  filter(numday < 20210901 & numday >= 19860101) %>% 
+  mutate(RNSM=(Adj.Close/100)^2)
 ```
-
-
 ```{r Physical second moment}
 #Implementing formula 19 to calculate daily varience
 
 #Changing data formats
-data_SNP500 <- as.data.frame(read.csv("MCD.csv"))
+data_SNP500 <- read.csv("MCD.csv") %>% as.data.frame() %>% as_tibble()
 
 data_SNP500 <- data_SNP500 %>% mutate(Date = ymd(Date)) 
+data_SNP500$Year = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%Y") 
+data_SNP500$Month = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%m") 
+data_SNP500$Day = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%d") 
+
 data_SNP500$numday <- as.numeric(format(as.Date(data_SNP500$Date), '%Y%m%d'))
 
-data_SNP500 <- data_SNP500 %>% select(-c(Close, Volume)) %>% filter(numday >= 19860203) %>% filter(numday <= 20210831)
+data_SNP500 <- data_SNP500 %>% select(-c(Volume))
+
 
 #Formula 19 from the paper (calculation of implied volatility)
-data_SNP500 <- data_SNP500 %>%
-  mutate(Day_Vol = (log(High/Open) * (log(High/Open) - log(Adj.Close/Open))) + (log(Low/Open) * (log(Low/Open) - log(Adj.Close/Open))))
+
+data_SNP500 <- data_SNP500 %>%  mutate(Day_Vol = (log(High/Open) * (log(High/Open) - log(Close/Open))) + (log(Low/Open) * (log(Low/Open) - log(Close/Open))))
+
 
 #Formula 18 (calculation of daily, weekly, monthly volatilities)
+
 data_SNP500 <- data_SNP500 %>% 
-  mutate(Wek_Vol = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 4, .complete = TRUE)) %>%
-  mutate(Mon_Vol = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 20, .complete = TRUE))
+  mutate(
+    VK = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .after=30, .complete = TRUE),
+    V2 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 1, .complete = TRUE),
+    V5 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 4, .complete = TRUE),
+    V21 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 20, .complete = TRUE)) 
+
 
 #HAR model for Formula 17. From this model we will get coefficients to calculate the estimation of physical second moments.
 
+regression_summary <- function(data_SNP500){
+    reg <- lm(VK ~ V2+V5+V21, data=data_SNP500)
+    return(tibble("date"=(data_SNP500$Date),
+                  "phi0"=coef(reg)[1],
+                  "phi1"=coef(reg)[2],
+                  "phi2"=coef(reg)[3],
+                  "phi3"=coef(reg)[4]))
+}
+
+Reg_SNP500 <- data_SNP500 %>% 
+  summarise(model = slide_period(
+    .x = cur_data(),
+    .i = Date,
+    .period="month",
+    .f = regression_summary,
+    .before = 120,
+    .complete = TRUE
+  )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+
+
+data_SNP500 <- data_SNP500 %>%
+  mutate(
+    phi0 = Reg_SNP500$phi0,
+    phi1 = Reg_SNP500$phi1,
+    phi2 = Reg_SNP500$phi2,
+    phi3 = Reg_SNP500$phi3,
+    PSM = phi0 + phi1*V2 + phi2*V5 + phi3*V21 
+  ) %>%
+  filter(numday >= 19860203 & numday < 20210901) %>% 
+  group_by(Year, Month) %>%
+  filter(numday == max(numday))
+```
+
+```{r Price of Co-skewness Risk}
+CS_Price <- tibble(
+  Date = data_SNP500$Date,
+  Price = data_SNP500$PSM - data_VIX$Square
+)
+```
+```{r summary of results}
+table_RNSM<-describe(data_VIX$Square)
+plot(data_VIX$Date,data_VIX$Square, type="l")
+
+table_PSM<-describe(data_SNP500$PSM)
+plot(data_SNP500$Date,data_SNP500$PSM, type="l")
+
+table_CSP<-describe(CS_Price$Price)
+plot(CS_Price$Date,CS_Price$Price, type = "l")
+```
+```{r Fama-French regressions}
+#To obtain the data for Fama-French models, we use the following FFdownload package and copy the code from https://sstoeckl.github.io/ffdownload/
+#We install the library
+library(FFdownload)
+#Then we process the data from the website to see, what files we can get (FFlist)
+temptxt <- tempfile(fileext = ".txt")
+FFdownload(exclude_daily=TRUE,download=FALSE,download_only=TRUE,listsave=temptxt)
+FFlist <- readr::read_csv(temptxt) %>% dplyr::select(2) %>% dplyr::rename(Files=x)
+FFlist %>% dplyr::slice(1:3,(dplyr::n()-2):dplyr::n())
+
+#Now we specify the name of files that we actually need to download. Input vector is responsible to collect the names, so that row needs to be edited. Then it is used for the download
+tempd <- tempdir()
+inputlist <- c("25_Portfolios_5x5","25_Portfolios_ME_Prior_12_2","25_Portfolios_ME_Prior_1_0","25_Portfolios_ME_Prior_60_13","F-F_Research_Data_Factors","F-F_Momentum_Factor")
+FFdownload(exclude_daily=TRUE,tempd=tempd,download=TRUE,download_only=TRUE,inputlist=inputlist)
+
+tempf <- paste0(tempd,"\\FFdata.RData")
+getwd()
+FFdownload(output_file = tempf, exclude_daily=TRUE,tempd=tempd,download=FALSE,
+           download_only=FALSE,inputlist = inputlist, format="tbl")
+
+library(timetk)
+load(file = tempf)
+
+#Making datasets for portfolios. We also filter data for a date frame same as for the whole research
+
+#For Size and Book-Market portfolios
+Size.Book_25 <- FFdata$x_25_Portfolios_5x5$monthly$average_value_weighted_returns %>% 
+  left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
+  left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date")%>%
+  filter(date > "Jan 1986") %>% filter(date < "Sep 2021")
+
+#For Size and Momentum portfolios
+Size.Momentum_25 <- FFdata$x_25_Portfolios_ME_Prior_12_2$monthly$average_value_weighted_returns %>% 
+  left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
+  left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date")%>%
+  filter(date > "Jan 1986") %>% filter(date < "Sep 2021")
+
+#For Size and Long-term reversal
+Size.LTR_25 <- FFdata$x_25_Portfolios_ME_Prior_60_13$monthly$average_value_weighted_returns %>% 
+  left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
+  left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date")%>%
+  filter(date > "Jan 1986") %>% filter(date < "Sep 2021")
+
+#For Size and Short-term reversal
+Size.STR_25 <- FFdata$x_25_Portfolios_ME_Prior_1_0$monthly$average_value_weighted_returns %>% 
+  left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
+  left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date") %>%
+  filter(date > "Jan 1986") %>% filter(date < "Sep 2021")
+  
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+#HAR model for Formula 17. From this model we will get coefficients to calculate the estimation of physical second moments.
+regression_summary <- function(df){
+    reg <- lm(VK ~ V2+V4+V20, data=df)
+    return(tibble(date=Date,
+      "phi0"=coef(reg)[1],
+                  "phi1"=coef(reg)[2],
+                  "phi2"=coef(reg)[3],
+                  "phi3"=coef(reg)[4]))
+}
+FANG_ret2 %>%
+  summarise(model = slide_period(
+    .x = cur_data(),
+    .i = date,
+    .period="month",
+    .f = regression_summary,
+    .before = 1,
+    .complete = FALSE
+  )) %>% unnest(model) 
+
+
+table <- slide_period(data_SNP500,data_SNP500$Date,.period = "year",identity,.every = 10, .before = 9)
 ################################################################
 #I AM NOW HERE, trying to implement recursive regression
 
@@ -100,6 +242,8 @@ table1_data<-describe(data_VIX$Square)
 plot(data_VIX$Date,data_VIX$Square, type="l")
 table1.2_data<-describe(data_VIX$SqPrice)
 plot(data_VIX$Date,data_VIX$SqPrice, type="l")
+table2.1<-describe(data_SNP500$PSM)
+plot(data_SNP500$Date,data_SNP500$PSM, type="l")
 
 n <- 15
 x <- rnorm(n)
@@ -125,7 +269,14 @@ coefs <- coefficients(x)
 
 #This How I want this to look like
 data_SNP500 <- data_SNP500 %>% mutate(estimated_volatility = coefs[1] + coefs[2]*rollsum(Day_Vol,1) + coefs[3]*Wek_Vol + coefs[4]*Mon_Vol)
+
+rolling_lms <- lapply(seq(20,nrow(df) ), function(x) lm( Y ~ X1+X2, data = df[1:x , ]) )
 ```
+
+
+
+
+
 
 
 
