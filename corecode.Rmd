@@ -14,13 +14,9 @@ library(readxl)
 library(fmdates)
 library(zoo)
 library(moments)
-suppressPackageStartupMessages({library(lubridate)})
+library(lubridate)
 library(xts)
 library(HARModel)
-if(!require('highfrequency')) {
-    install.packages('highfrequency')
-    library('highfrequency')
-}
 library(slider)
 library(broom)
 library(tidyverse)
@@ -44,7 +40,7 @@ data_VIX$numday <- as.numeric(format(as.Date(data_VIX$Date), '%Y%m%d'))
 #Calculated risk-neutral second moment just taking square -- SqPrice -- and (x/100)^2 -- Square -- 
 data_VIX$Adj.Close <- as.numeric(data_VIX$Adj.Close)
 data_VIX <- select(data_VIX, -c(Open, Low, High, Close, Volume)) %>% 
-  filter(numday < 20210901 & numday >= 19860101) %>% 
+  filter(numday < 20130101 & numday >= 19860101) %>% 
   mutate(RNSM=(Adj.Close/100)^2)
 ```
 ```{r Physical second moment}
@@ -108,7 +104,7 @@ data_SNP500 <- data_SNP500 %>%
     phi3 = Reg_SNP500$phi3,
     PSM = phi0 + phi1*V2 + phi2*V5 + phi3*V21 
   ) %>%
-  filter(numday >= 19860203 & numday < 20210901) %>% 
+  filter(numday >= 19860203 & numday < 20130101) %>% 
   group_by(Year, Month) %>%
   filter(numday == max(numday))
 ```
@@ -116,12 +112,55 @@ data_SNP500 <- data_SNP500 %>%
 ```{r Price of Co-skewness Risk}
 CS_Price <- tibble(
   Date = data_SNP500$Date,
-  Price = data_SNP500$PSM - data_VIX$Square
+  Price = data_SNP500$PSM - data_VIX$RNSM
 )
 ```
-```{r summary of results}
-table_RNSM<-describe(data_VIX$Square)
-plot(data_VIX$Date,data_VIX$Square, type="l")
+```{r Figure 1}
+#Now we are finalizing the Figure 1. for this, we save it in PDF format
+pdf("Figure 1.pdf",         # File name
+    width = 8, height = 7, # Width and height in inches
+    bg = "white",          # Background color
+    colormodel = "cmyk",    # Color model (cmyk is required for most publications)
+    paper = "A4")
+par(mfrow = c(3,1))
+plot(data_SNP500$Date,data_SNP500$PSM, type="l",
+     xlab = "", ylab = "",
+     main = "Graph A. Physical Second Moment", font.main = 3)
+plot(data_VIX$Date,data_VIX$RNSM, type="l", 
+     xlab = "", ylab = "",
+     main ="Graph B. Risk-Neutral Second Moment", font.main = 3)
+plot(CS_Price$Date,CS_Price$Price, type = "l", 
+     xlab = "", ylab = "",
+     main = "Graph C. Price of Coskewness Risk", font.main = 3)
+dev.off() 
+```
+```{r Table 1}
+library(gridExtra)
+#Calculation first-order autocorrelation with OLS and take the square root of 
+#of the R^2 from regretions.
+foc1 <- lm(PSM ~ lag(PSM, n = 1L), data_SNP500)
+foc2 <- lm(RNSM ~ lag(RNSM, n = 1L), data_VIX)
+foc3 <- lm(Price ~ lag(Price, n = 1L), CS_Price)
+focs <- c(summary(foc1)$r.square, summary(foc2)$r.square, 
+          summary(foc3)$r.square)
+Table_1 <- rbind(
+  cbind(
+  t(select(table_PSM, c("mean", "sd", "skew", "kurtosis"))),
+  t(select(table_RNSM, c("mean", "sd", "skew", "kurtosis"))),
+  t(select(table_CSP, c("mean", "sd", "skew", "kurtosis")))
+), focs
+)
+colnames(Table_1) <- c("Physical Second Moment", "Risk-Neutral Second Moment", "Price of Coskewness Risk")
+rownames(Table_1) <- c("mean", "sd", "skew", "kurtosis","Autocorrelation")
+
+pdf("Table 1.pdf", width = 10, height = 5)
+grid.table(Table_1)
+dev.off()
+```
+
+```{r}
+table_RNSM<-describe(data_VIX$RNSM)
+plot(data_VIX$Date,data_VIX$RNSM, type="l")
 
 table_PSM<-describe(data_SNP500$PSM)
 plot(data_SNP500$Date,data_SNP500$PSM, type="l")
