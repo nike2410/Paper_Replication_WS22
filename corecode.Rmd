@@ -166,6 +166,7 @@ rownames(Table_1) <- c("mean", "sd", "skew", "kurtosis","Autocorrelation")
 pdf("Table 1.pdf", width = 10, height = 5)
   grid.table(round(Table_1, digits = 4))
 dev.off()
+Table_1
 
 rm(foc1)
 rm(foc2)
@@ -923,14 +924,21 @@ adj.R.aq <- as.numeric(c(mean(as.numeric(inter1[5,])),mean(as.numeric(inter2_1[7
             mean(as.numeric(inter4[5,])),mean(as.numeric(inter2_4[7,])),mean(as.numeric(inter3_4[13,])),
             mean(as.numeric(inter2[5,])),mean(as.numeric(inter2_2[7,])),mean(as.numeric(inter3_2[13,]))))
 
-Table_2 <- rbind(beta_0, t_val_b0, b_MKT, t_val_b1, b_HML,
-                 t_val_b2, b_SMB, t_val_b3, b_MOM, t_val_b4,
-                 b_COSK, t_val_b5, adj.R.aq)
+Table_2 <- rbind(beta_0, b_MKT, b_HML,
+                 b_SMB, b_MOM, b_COSK, adj.R.aq)
 Table_2 <- round(Table_2, digits = 3)
 Table_2 <- replace(Table_2, is.na(Table_2), "")
-rownames(Table_2) <- c("l_0","","l_MKT","","l_HML","","l_SMB","","l_MOM","","l_COSK","","Adj.R.sq")
+rownames(Table_2) <- c("l_0","l_MKT","l_HML","l_SMB","l_MOM","l_COSK","Adj.R.sq")
 colnames(Table_2) <- c("Size-to-Book 1","Size-to-Book 2","Size-to-Book 3","Size-to-Momentum 1","Size-to-Momentum 2","Size-to-Momentum 3",
                        "Size-to-STR 1", "Size-to-STR 2", "Size-to-STR 3", "Size-to-LTR 1",  "Size-to-STR 2", "Size-to-STR 3")
+# Table_2 <- rbind(beta_0, t_val_b0, b_MKT, t_val_b1, b_HML,
+#                  t_val_b2, b_SMB, t_val_b3, b_MOM, t_val_b4,
+#                  b_COSK, t_val_b5, adj.R.aq)
+# Table_2 <- round(Table_2, digits = 3)
+# Table_2 <- replace(Table_2, is.na(Table_2), "")
+# rownames(Table_2) <- c("l_0","","l_MKT","","l_HML","","l_SMB","","l_MOM","","l_COSK","","Adj.R.sq")
+# colnames(Table_2) <- c("Size-to-Book 1","Size-to-Book 2","Size-to-Book 3","Size-to-Momentum 1","Size-to-Momentum 2","Size-to-Momentum 3",
+#                        "Size-to-STR 1", "Size-to-STR 2", "Size-to-STR 3", "Size-to-LTR 1",  "Size-to-STR 2", "Size-to-STR 3")
 
 ```
 ```{r Table 2}
@@ -938,143 +946,229 @@ pdf("Table 2.pdf", width = 20, height = 5)
   grid.table(Table_2)
 dev.off()
 write.csv(Table_2, file = "Table2.csv")
+Table_2
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-################################################################################
-JUNK
-################################################################################
-
-#HAR model for Formula 17. From this model we will get coefficients to calculate the estimation of physical second moments.
-regression_summary <- function(df){
-    reg <- lm(VK ~ V2+V4+V20, data=df)
-    return(tibble(date=Date,
-      "phi0"=coef(reg)[1],
-                  "phi1"=coef(reg)[2],
-                  "phi2"=coef(reg)[3],
-                  "phi3"=coef(reg)[4]))
+```{r Prepareation Table 3: SB}
+err_OI <- list()
+err_RB <- list()
+COSK_oest <- Table_1[1,3]
+COSK_rest <- as.numeric(Table_2[6,2])
+MKT_rest <- as.numeric(Table_2[2,2])
+#i=1
+for (i in (1:25)) {
+  aux_R <- Size.Book_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_b_MKT <- SB_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+  aux_b_COSK <- SB_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+  err_OI[i] <- aux_R[,i] - COSK_oest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+  err_RB[i] <- aux_R[,i] - COSK_rest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
 }
-FANG_ret2 %>%
-  summarise(model = slide_period(
-    .x = cur_data(),
-    .i = date,
-    .period="month",
-    .f = regression_summary,
-    .before = 1,
-    .complete = FALSE
-  )) %>% unnest(model) 
-
-
-table <- slide_period(data_SNP500,data_SNP500$Date,.period = "year",identity,.every = 10, .before = 9)
-################################################################
-#I AM NOW HERE, trying to implement recursive regression
-
-
-
-```{r Example for HAR model}
-# Example 1: HAR
-# Forecasting daily Realized volatility for the S&P 500 using the basic HARmodel: HAR
-library(xts)
-RVSPY <- as.xts(SPYRM$RV5, order.by = SPYRM$DT)
-
-x <- HARmodel(data = RVSPY , periods = c(1,5,22), RVest = c("rCov"),
-              type = "HAR", h = 1, transform = NULL, inputType = "RM")
-class(x)
-x
-summary(x)
-plot(x)
-predict(x)
+E_SB <- c()
+for (i in (1:25)) {
+  E_SB[i] = sum((err_OI[[i]]^2) - (err_RB[[i]]^2))
+}
+MSE_SB = sum(E_SB)/25*12
+```
+```{r Prepareation Table 3: SM}
+err_OI <- list()
+err_RB <- list()
+COSK_oest <- Table_1[1,3]
+COSK_rest <- as.numeric(Table_2[6,2])
+MKT_rest <- as.numeric(Table_2[2,2])
+#i=1
+for (i in (1:25)) {
+  aux_R <- Size.Momentum_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_b_MKT <- SM_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+  aux_b_COSK <- SM_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+  err_OI[i] <- aux_R[,i] - COSK_oest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+  err_RB[i] <- aux_R[,i] - COSK_rest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+}
+E_SM <- c()
+for (i in (1:25)) {
+  E_SM[i] = sum((err_OI[[i]]^2) - (err_RB[[i]]^2))
+}
+MSE_SM = sum(E_SM)/25*12
+```
+```{r Prepareation Table 3: SS}
+err_OI <- list()
+err_RB <- list()
+COSK_oest <- Table_1[1,3]
+COSK_rest <- as.numeric(Table_2[6,2])
+MKT_rest <- as.numeric(Table_2[2,2])
+#i=1
+for (i in (1:25)) {
+  aux_R <- Size.STR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_b_MKT <- SS_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+  aux_b_COSK <- SS_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+  err_OI[i] <- aux_R[,i] - COSK_oest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+  err_RB[i] <- aux_R[,i] - COSK_rest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+}
+E_SS <- c()
+for (i in (1:25)) {
+  E_SS[i] = sum((err_OI[[i]]^2) - (err_RB[[i]]^2))
+}
+MSE_SS = sum(E_SS)/25*12
+```
+```{r Prepareation Table 3: SL}
+err_OI <- list()
+err_RB <- list()
+COSK_oest <- Table_1[1,3]
+COSK_rest <- as.numeric(Table_2[6,2])
+MKT_rest <- as.numeric(Table_2[2,2])
+#i=1
+for (i in (1:25)) {
+  aux_R <- Size.LTR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_b_MKT <- SL_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+  aux_b_COSK <- SL_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+  err_OI[i] <- aux_R[,i] - COSK_oest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+  err_RB[i] <- aux_R[,i] - COSK_rest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+}
+E_SL <- c()
+for (i in (1:25)) {
+  E_SL[i] = sum((err_OI[[i]]^2) - (err_RB[[i]]^2))
+}
+MSE_SL = sum(E_SL)/25*12
+```
+```{r Table 3}
+Table_3 <- cbind(MSE_SB,MSE_SM,MSE_SS,MSE_SL)
+pdf("Table 3.pdf", width = 10, height = 5)
+  grid.table(Table_3)
+dev.off()
+Table_3
 ```
 
-```{r JUNK}
-#JUNK
 
 
-library(psych)
-table1_data<-describe(data_VIX$Square)
-plot(data_VIX$Date,data_VIX$Square, type="l")
-table1.2_data<-describe(data_VIX$SqPrice)
-plot(data_VIX$Date,data_VIX$SqPrice, type="l")
-table2.1<-describe(data_SNP500$PSM)
-plot(data_SNP500$Date,data_SNP500$PSM, type="l")
-
-n <- 15
-x <- rnorm(n)
-weights <- 0.9 ^ (n:1)
-
-# rolling sums with complete windows
-roll_sum(x, 5)
-x
-
-#Getting data for HAR model: filtering until 1996 (10 year window)
-win_120 <- data_SNP500 %>% filter(numday <=19960203)
-
-which(data_SNP500 = (head(data_SNP500$numday,1)+100000), arr.ind = TRUE)
-
-a1
-
-HAR_data <- as.xts(win_120$Day_Vol, order.by = win_120$Date)
-x <- HARmodel(data = HAR_data , periods = c(1,4,20), RVest = c("rCov"), type = "HAR", h = 1, transform = NULL, inputType = "RM")
-summary(x)
-
-#calculating volatilities based on estimates from HAR model: formula 17
-coefs <- coefficients(x)
-
-#This How I want this to look like
-data_SNP500 <- data_SNP500 %>% mutate(estimated_volatility = coefs[1] + coefs[2]*rollsum(Day_Vol,1) + coefs[3]*Wek_Vol + coefs[4]*Mon_Vol)
-
-rolling_lms <- lapply(seq(20,nrow(df) ), function(x) lm( Y ~ X1+X2, data = df[1:x , ]) )
 
 
-table_RNSM<-describe(data_VIX$RNSM)
-plot(data_VIX$Date,data_VIX$RNSM, type="l")
 
-table_PSM<-describe(data_SNP500$PSM)
-plot(data_SNP500$Date,data_SNP500$PSM, type="l")
 
-table_CSP<-describe(CS_Price$Price)
-plot(CS_Price$Date,CS_Price$Price, type = "l")
-```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ################################################################################ -->
+<!-- JUNK -->
+<!-- ################################################################################ -->
+
+<!-- #HAR model for Formula 17. From this model we will get coefficients to calculate the estimation of physical second moments. -->
+<!-- regression_summary <- function(df){ -->
+<!--     reg <- lm(VK ~ V2+V4+V20, data=df) -->
+<!--     return(tibble(date=Date, -->
+<!--       "phi0"=coef(reg)[1], -->
+<!--                   "phi1"=coef(reg)[2], -->
+<!--                   "phi2"=coef(reg)[3], -->
+<!--                   "phi3"=coef(reg)[4])) -->
+<!-- } -->
+<!-- FANG_ret2 %>% -->
+<!--   summarise(model = slide_period( -->
+<!--     .x = cur_data(), -->
+<!--     .i = date, -->
+<!--     .period="month", -->
+<!--     .f = regression_summary, -->
+<!--     .before = 1, -->
+<!--     .complete = FALSE -->
+<!--   )) %>% unnest(model)  -->
+
+
+<!-- table <- slide_period(data_SNP500,data_SNP500$Date,.period = "year",identity,.every = 10, .before = 9) -->
+<!-- ################################################################ -->
+<!-- #I AM NOW HERE, trying to implement recursive regression -->
+
+
+
+<!-- ```{r Example for HAR model} -->
+<!-- # Example 1: HAR -->
+<!-- # Forecasting daily Realized volatility for the S&P 500 using the basic HARmodel: HAR -->
+<!-- library(xts) -->
+<!-- RVSPY <- as.xts(SPYRM$RV5, order.by = SPYRM$DT) -->
+
+<!-- x <- HARmodel(data = RVSPY , periods = c(1,5,22), RVest = c("rCov"), -->
+<!--               type = "HAR", h = 1, transform = NULL, inputType = "RM") -->
+<!-- class(x) -->
+<!-- x -->
+<!-- summary(x) -->
+<!-- plot(x) -->
+<!-- predict(x) -->
+<!-- ``` -->
+
+<!-- ```{r JUNK} -->
+<!-- #JUNK -->
+
+
+<!-- library(psych) -->
+<!-- table1_data<-describe(data_VIX$Square) -->
+<!-- plot(data_VIX$Date,data_VIX$Square, type="l") -->
+<!-- table1.2_data<-describe(data_VIX$SqPrice) -->
+<!-- plot(data_VIX$Date,data_VIX$SqPrice, type="l") -->
+<!-- table2.1<-describe(data_SNP500$PSM) -->
+<!-- plot(data_SNP500$Date,data_SNP500$PSM, type="l") -->
+
+<!-- n <- 15 -->
+<!-- x <- rnorm(n) -->
+<!-- weights <- 0.9 ^ (n:1) -->
+
+<!-- # rolling sums with complete windows -->
+<!-- roll_sum(x, 5) -->
+<!-- x -->
+
+<!-- #Getting data for HAR model: filtering until 1996 (10 year window) -->
+<!-- win_120 <- data_SNP500 %>% filter(numday <=19960203) -->
+
+<!-- which(data_SNP500 = (head(data_SNP500$numday,1)+100000), arr.ind = TRUE) -->
+
+<!-- a1 -->
+
+<!-- HAR_data <- as.xts(win_120$Day_Vol, order.by = win_120$Date) -->
+<!-- x <- HARmodel(data = HAR_data , periods = c(1,4,20), RVest = c("rCov"), type = "HAR", h = 1, transform = NULL, inputType = "RM") -->
+<!-- summary(x) -->
+
+<!-- #calculating volatilities based on estimates from HAR model: formula 17 -->
+<!-- coefs <- coefficients(x) -->
+
+<!-- #This How I want this to look like -->
+<!-- data_SNP500 <- data_SNP500 %>% mutate(estimated_volatility = coefs[1] + coefs[2]*rollsum(Day_Vol,1) + coefs[3]*Wek_Vol + coefs[4]*Mon_Vol) -->
+
+<!-- rolling_lms <- lapply(seq(20,nrow(df) ), function(x) lm( Y ~ X1+X2, data = df[1:x , ]) ) -->
+
+
+<!-- table_RNSM<-describe(data_VIX$RNSM) -->
+<!-- plot(data_VIX$Date,data_VIX$RNSM, type="l") -->
+
+<!-- table_PSM<-describe(data_SNP500$PSM) -->
+<!-- plot(data_SNP500$Date,data_SNP500$PSM, type="l") -->
+
+<!-- table_CSP<-describe(CS_Price$Price) -->
+<!-- plot(CS_Price$Date,CS_Price$Price, type = "l") -->
+<!-- ``` -->
 
 
 
