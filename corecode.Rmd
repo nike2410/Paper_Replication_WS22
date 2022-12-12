@@ -23,24 +23,21 @@ library(tidyverse)
 library(psych)
 ```
 
-###############################################
-#####CALCULATION PRICE OF CO-SKEWNESS RISK#####
-###############################################
+#############################################################
+#####CALCULATION PRICE OF CO-SKEWNESS RISK: Option-Based#####
+#############################################################
 
 ```{r Risk-Neutral Second Moment}
 data_VIX <- as.data.frame(read.csv("^VXO.csv"))
 
 data_VIX <- data_VIX %>% mutate(Date = ymd(Date))
-data_VIX$Year = as.numeric(format(as.Date(data_VIX$Date, format='%Y%m%d'),"%Y"))
-data_VIX$Month = as.numeric(format(as.Date(data_VIX$Date, format='%Y%m%d'),"%m")) 
-data_VIX$Day = as.numeric(format(as.Date(data_VIX$Date, format='%Y%m%d'),"%d"))
 
 data_VIX$numday <- as.numeric(format(as.Date(data_VIX$Date), '%Y%m%d'))
 
-#Calculated risk-neutral second moment just taking square -- SqPrice -- and (x/100)^2 -- Square -- 
+#Calculated risk-neutral second moment: just taking square
 data_VIX$Adj.Close <- as.numeric(data_VIX$Adj.Close)
 data_VIX <- select(data_VIX, -c(Open, Low, High, Close, Volume)) %>% 
-  filter(numday < 20130101 & numday >= 19860101) %>% 
+  filter(numday < 20210901 & numday > 19860101) %>% 
   mutate(RNSM=(Adj.Close/100)^2)
 ```
 ```{r Physical second moment}
@@ -54,6 +51,7 @@ data_SNP500$Year = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%Y")
 data_SNP500$Month = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%m") 
 data_SNP500$Day = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%d") 
 
+
 data_SNP500$numday <- as.numeric(format(as.Date(data_SNP500$Date), '%Y%m%d'))
 
 data_SNP500 <- data_SNP500 %>% select(-c(Volume))
@@ -61,20 +59,25 @@ data_SNP500 <- data_SNP500 %>% select(-c(Volume))
 
 #Formula 19 from the paper (calculation of implied volatility)
 
-data_SNP500 <- data_SNP500 %>%  mutate(Day_Vol = (log(High/Open) * (log(High/Open) - log(Close/Open))) + (log(Low/Open) * (log(Low/Open) - log(Close/Open))))
-
+data_SNP500 <- data_SNP500 %>% mutate(
+  Day_Vol = (log(High/Open) * (log(High/Open) - log(Close/Open))) + 
+    (log(Low/Open) * (log(Low/Open) - log(Close/Open))))
 
 #Formula 18 (calculation of daily, weekly, monthly volatilities)
 
 data_SNP500 <- data_SNP500 %>% 
   mutate(
     VK = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .after=30, .complete = TRUE),
-    V2 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 1, .complete = TRUE),
-    V5 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 4, .complete = TRUE),
-    V21 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 20, .complete = TRUE)) 
+    V2 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 1, 
+                   .complete = TRUE),
+    V5 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 4, 
+                   .complete = TRUE),
+    V21 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 20, 
+                    .complete = TRUE)) 
 
 
-#HAR model for Formula 17. From this model we will get coefficients to calculate the estimation of physical second moments.
+#HAR model for Formula 17. From this model we will get coefficients to 
+#calculate the estimation of physical second moments.
 
 regression_summary <- function(data_SNP500){
     reg <- lm(VK ~ V2+V5+V21, data=data_SNP500)
@@ -102,13 +105,12 @@ data_SNP500 <- data_SNP500 %>%
     phi1 = Reg_SNP500$phi1,
     phi2 = Reg_SNP500$phi2,
     phi3 = Reg_SNP500$phi3,
-    PSM = phi0 + phi1*V2 + phi2*V5 + phi3*V21 
+    PSM = phi0 + phi1*V2 + phi2*V5 + phi3*V21
   ) %>%
-  filter(numday >= 19860203 & numday < 20130101) %>% 
+  filter(numday < 20210901 & numday > 19860201) %>%
   group_by(Year, Month) %>%
   filter(numday == max(numday))
 ```
-
 ```{r Price of Co-skewness Risk}
 CS_Price <- tibble(
   Date = data_SNP500$Date,
@@ -120,7 +122,8 @@ CS_Price <- tibble(
 pdf("Figure 1.pdf",         # File name
     width = 8, height = 7, # Width and height in inches
     bg = "white",          # Background color
-    colormodel = "cmyk",    # Color model (cmyk is required for most publications)
+    colormodel = "cmyk",    # Color model (cmyk is required for most 
+                            # publications)
     paper = "A4")
 par(mfrow = c(3,1))
 plot(data_SNP500$Date,data_SNP500$PSM, type="l",
@@ -137,51 +140,66 @@ dev.off()
 ```{r Table 1}
 library(gridExtra)
 #Calculation first-order autocorrelation with OLS and take the square root of 
-#of the R^2 from regretions.
+#of the R^2 from regressions.
 foc1 <- lm(PSM ~ lag(PSM, n = 1L), data_SNP500)
 foc2 <- lm(RNSM ~ lag(RNSM, n = 1L), data_VIX)
 foc3 <- lm(Price ~ lag(Price, n = 1L), CS_Price)
-focs <- c(summary(foc1)$r.square, summary(foc2)$r.square, 
-          summary(foc3)$r.square)
+focs <- c(sqrt(summary(foc1)$r.square), sqrt(summary(foc2)$r.square), 
+          sqrt(summary(foc3)$r.square))
+
+#Connecting all the data, we use also describe function that produce the
+#needed descriptive statistics, + we add the First order autocorrelation from 
+#our regressions
 Table_1 <- rbind(
   cbind(
-  t(select(table_PSM, c("mean", "sd", "skew", "kurtosis"))),
-  t(select(table_RNSM, c("mean", "sd", "skew", "kurtosis"))),
-  t(select(table_CSP, c("mean", "sd", "skew", "kurtosis")))
+  t(select(describe(data_SNP500$PSM), c("mean", "sd", "skew", "kurtosis"))),
+  t(select(describe(data_VIX$RNSM), c("mean", "sd", "skew", "kurtosis"))),
+  t(select(describe(CS_Price$Price), c("mean", "sd", "skew", "kurtosis")))
 ), focs
 )
-colnames(Table_1) <- c("Physical Second Moment", "Risk-Neutral Second Moment", "Price of Coskewness Risk")
+#Changing the names of the columns and rows
+colnames(Table_1) <- c("Physical Second Moment", "Risk-Neutral Second Moment", 
+                       "Price of Coskewness Risk")
 rownames(Table_1) <- c("mean", "sd", "skew", "kurtosis","Autocorrelation")
 
+#We save the table in pdf
 pdf("Table 1.pdf", width = 10, height = 5)
-grid.table(Table_1)
+  grid.table(round(Table_1, digits = 4))
 dev.off()
+
+rm(foc1)
+rm(foc2)
+rm(foc3)
+rm(focs)
 ```
 
-```{r}
-table_RNSM<-describe(data_VIX$RNSM)
-plot(data_VIX$Date,data_VIX$RNSM, type="l")
+#################################################################
+#####CALCULATION PRICE OF CO-SKEWNESS RISK: Regression-Based#####
+#################################################################
 
-table_PSM<-describe(data_SNP500$PSM)
-plot(data_SNP500$Date,data_SNP500$PSM, type="l")
-
-table_CSP<-describe(CS_Price$Price)
-plot(CS_Price$Date,CS_Price$Price, type = "l")
-```
-```{r Fama-French regressions}
-#To obtain the data for Fama-French models, we use the following FFdownload package and copy the code from https://sstoeckl.github.io/ffdownload/
+```{r Data for Fama-French regressions}
+#To obtain the data for Fama-French models, we use the following FFdownload 
+#package and copy the code from https://sstoeckl.github.io/ffdownload/
 #We install the library
 library(FFdownload)
-#Then we process the data from the website to see, what files we can get (FFlist)
+#Then we process the data from the website to see, what files we can get 
+#(FFlist)
 temptxt <- tempfile(fileext = ".txt")
-FFdownload(exclude_daily=TRUE,download=FALSE,download_only=TRUE,listsave=temptxt)
-FFlist <- readr::read_csv(temptxt) %>% dplyr::select(2) %>% dplyr::rename(Files=x)
+FFdownload(exclude_daily=TRUE,download=FALSE,download_only=TRUE,
+           listsave=temptxt)
+FFlist <- readr::read_csv(temptxt) %>% dplyr::select(2) %>% 
+  dplyr::rename(Files=x)
 FFlist %>% dplyr::slice(1:3,(dplyr::n()-2):dplyr::n())
 
-#Now we specify the name of files that we actually need to download. Input vector is responsible to collect the names, so that row needs to be edited. Then it is used for the download
+#Now we specify the name of files that we actually need to download. Input 
+#vector is responsible to collect the names, so that row needs to be edited. 
+#Then it is used for the download
 tempd <- tempdir()
-inputlist <- c("25_Portfolios_5x5","25_Portfolios_ME_Prior_12_2","25_Portfolios_ME_Prior_1_0","25_Portfolios_ME_Prior_60_13","F-F_Research_Data_Factors","F-F_Momentum_Factor")
-FFdownload(exclude_daily=TRUE,tempd=tempd,download=TRUE,download_only=TRUE,inputlist=inputlist)
+inputlist <- c("25_Portfolios_5x5","25_Portfolios_ME_Prior_12_2",
+               "25_Portfolios_ME_Prior_1_0","25_Portfolios_ME_Prior_60_13",
+               "F-F_Research_Data_Factors","F-F_Momentum_Factor")
+FFdownload(exclude_daily=TRUE,tempd=tempd,download=TRUE,download_only=TRUE,
+           inputlist=inputlist)
 
 tempf <- paste0(tempd,"\\FFdata.RData")
 getwd()
@@ -191,35 +209,735 @@ FFdownload(output_file = tempf, exclude_daily=TRUE,tempd=tempd,download=FALSE,
 library(timetk)
 load(file = tempf)
 
-#Making datasets for portfolios. We also filter data for a date frame same as for the whole research
+#Making datasets for portfolios. We also filter data for a date frame same as 
+#for the whole research
 
 #For Size and Book-Market portfolios
 Size.Book_25 <- FFdata$x_25_Portfolios_5x5$monthly$average_value_weighted_returns %>% 
   left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
   left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date")%>%
-  filter(date > "Jan 1986") %>% filter(date < "Sep 2021")
+  filter(date > "Jan 1986") %>% filter(date < "Sep 2021") %>%
+  mutate(MKT = Mkt.RF+RF,
+         COSK = Mkt.RF^2)
 
 #For Size and Momentum portfolios
 Size.Momentum_25 <- FFdata$x_25_Portfolios_ME_Prior_12_2$monthly$average_value_weighted_returns %>% 
   left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
   left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date")%>%
-  filter(date > "Jan 1986") %>% filter(date < "Sep 2021")
+  filter(date > "Jan 1986") %>% filter(date < "Sep 2021") %>%
+  mutate(MKT = Mkt.RF+RF,
+         COSK = Mkt.RF^2)
 
 #For Size and Long-term reversal
 Size.LTR_25 <- FFdata$x_25_Portfolios_ME_Prior_60_13$monthly$average_value_weighted_returns %>% 
   left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
   left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date")%>%
-  filter(date > "Jan 1986") %>% filter(date < "Sep 2021")
+  filter(date > "Jan 1986") %>% filter(date < "Sep 2021") %>%
+  mutate(MKT = Mkt.RF+RF,
+         COSK = Mkt.RF^2)
 
 #For Size and Short-term reversal
 Size.STR_25 <- FFdata$x_25_Portfolios_ME_Prior_1_0$monthly$average_value_weighted_returns %>% 
   left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
   left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date") %>%
-  filter(date > "Jan 1986") %>% filter(date < "Sep 2021")
+  filter(date > "Jan 1986") %>% filter(date < "Sep 2021") %>%
+  mutate(MKT = Mkt.RF+RF,
+         COSK = Mkt.RF^2)
+
+rm(FFlist)
+rm(inputlist)
+rm(tempd)
+rm(tempf)
+rm(temptxt)
+```
+```{r Fama-French 1st Step}
+#First stage regressions (time-series regressions with formula): 
+#R(j,t) = b0 + bn*factor
+
+
+
+regression_1 <- function(reg_data){
+    reg <- lm(Portfolio ~ MKT, data=reg_data)
+    return(tibble("date"=(reg_data$date),
+                  "MKT_beta1"=coef(reg)[2]))
+    }
+regression_2 <- function(reg_data){
+    reg <- lm(Portfolio ~ MKT + COSK, data=reg_data)
+    return(tibble("date"=(reg_data),
+                  "MKT_beta2"=coef(reg)[2],
+                  "COSK_beta2"=coef(reg)[3]))
+    }
+regression_3 <- function(reg_data){
+    reg <- lm(Portfolio ~ MKT + HML + SMB + MOM + COSK, data=reg_data)
+    return(tibble("date"=(reg_data),
+                  "MKT_beta3"=coef(reg)[2],
+                  "HML_beta3"=coef(reg)[3],
+                  "SMB_beta3"=coef(reg)[4],
+                  "MOM_beta3"=coef(reg)[5],
+                  "COSK_beta3"=coef(reg)[6]))
+    }
+SB_Sum_Reg_1 <- Size.Book_25$date
+SB_Sum_Reg_2_MKT <- Size.Book_25$date
+SB_Sum_Reg_2_COSK <- Size.Book_25$date
+SB_Sum_Reg_3_MKT <- Size.Book_25$date
+SB_Sum_Reg_3_HML <- Size.Book_25$date
+SB_Sum_Reg_3_SMB <- Size.Book_25$date
+SB_Sum_Reg_3_MOM <- Size.Book_25$date
+SB_Sum_Reg_3_COSK <- Size.Book_25$date
+
+for (i in 2:26){
+  reg_data <- Size.Book_25[,i]
+  reg_data <- cbind(as.Date(Size.Book_25$date,format="%d-%m-%y"),reg_data,Size.Book_25$MKT,Size.Book_25$HML,Size.Book_25$SMB,
+                    Size.Book_25$Mom, Size.Book_25$COSK)
+  colnames(reg_data) <- c("date","Portfolio","MKT","HML","SMB","MOM","COSK")
   
+  Reg_1 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_1,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SB_Sum_Reg_1 <- cbind(SB_Sum_Reg_1,Reg_1[,2])
+  
+  Reg_2 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_2,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SB_Sum_Reg_2_MKT <- cbind(SB_Sum_Reg_2_MKT,Reg_2[,2])  
+  SB_Sum_Reg_2_COSK <- cbind(SB_Sum_Reg_2_COSK,Reg_2[,3]) 
+  
+  Reg_3 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_3,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SB_Sum_Reg_3_MKT <- cbind(SB_Sum_Reg_3_MKT,Reg_3[,2])
+  SB_Sum_Reg_3_HML <- cbind(SB_Sum_Reg_3_HML,Reg_3[,3])
+  SB_Sum_Reg_3_SMB <- cbind(SB_Sum_Reg_3_SMB,Reg_3[,4])
+  SB_Sum_Reg_3_MOM <- cbind(SB_Sum_Reg_3_MOM,Reg_3[,5])
+  SB_Sum_Reg_3_COSK <- cbind(SB_Sum_Reg_3_COSK,Reg_3[,6])
+}
+colnames(SB_Sum_Reg_1) <- c("date",1:25)
+SB_Sum_Reg_1 <- SB_Sum_Reg_1 %>% filter(date > "Jan 1996")
+colnames(SB_Sum_Reg_2_MKT) <- c("date",1:25)
+SB_Sum_Reg_2_MKT <- SB_Sum_Reg_2_MKT %>% filter(date > "Jan 1996")
+colnames(SB_Sum_Reg_2_COSK) <- c("date",1:25)
+SB_Sum_Reg_2_COSK <- SB_Sum_Reg_2_COSK %>% filter(date > "Jan 1996")
+colnames(SB_Sum_Reg_3_MKT) <- c("date",1:25)
+SB_Sum_Reg_3_MKT <- SB_Sum_Reg_3_MKT %>% filter(date > "Jan 1996")
+colnames(SB_Sum_Reg_3_HML) <- c("date",1:25)
+SB_Sum_Reg_3_HML <- SB_Sum_Reg_3_HML %>% filter(date > "Jan 1996")
+colnames(SB_Sum_Reg_3_SMB) <- c("date",1:25)
+SB_Sum_Reg_3_SMB <- SB_Sum_Reg_3_SMB %>% filter(date > "Jan 1996")
+colnames(SB_Sum_Reg_3_MOM) <- c("date",1:25)
+SB_Sum_Reg_3_MOM <- SB_Sum_Reg_3_MOM %>% filter(date > "Jan 1996")
+colnames(SB_Sum_Reg_3_COSK) <- c("date",1:25)
+SB_Sum_Reg_3_COSK <- SB_Sum_Reg_3_COSK %>% filter(date > "Jan 1996")
 
 
+SL_Sum_Reg_1 <- Size.LTR_25$date
+SL_Sum_Reg_2_MKT <- Size.LTR_25$date
+SL_Sum_Reg_2_COSK <- Size.LTR_25$date
+SL_Sum_Reg_3_MKT <- Size.LTR_25$date
+SL_Sum_Reg_3_HML <- Size.LTR_25$date
+SL_Sum_Reg_3_SMB <- Size.LTR_25$date
+SL_Sum_Reg_3_MOM <- Size.LTR_25$date
+SL_Sum_Reg_3_COSK <- Size.LTR_25$date
+for (i in 2:26){
+  reg_data <- Size.LTR_25[,i]
+  reg_data <- cbind(as.Date(Size.LTR_25$date,format="%d-%m-%y"),reg_data,Size.LTR_25$MKT,Size.LTR_25$HML,Size.LTR_25$SMB,
+                    Size.LTR_25$Mom, Size.LTR_25$COSK)
+  colnames(reg_data) <- c("date","Portfolio","MKT","HML","SMB","MOM","COSK")
+  
+  Reg_1 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_1,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SL_Sum_Reg_1 <- cbind(SL_Sum_Reg_1,Reg_1[,2])
+  
+  Reg_2 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_2,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SL_Sum_Reg_2_MKT <- cbind(SL_Sum_Reg_2_MKT,Reg_2[,2])  
+  SL_Sum_Reg_2_COSK <- cbind(SL_Sum_Reg_2_COSK,Reg_2[,3]) 
+  
+  Reg_3 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_3,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SL_Sum_Reg_3_MKT <- cbind(SL_Sum_Reg_3_MKT,Reg_3[,2])
+  SL_Sum_Reg_3_HML <- cbind(SL_Sum_Reg_3_HML,Reg_3[,3])
+  SL_Sum_Reg_3_SMB <- cbind(SL_Sum_Reg_3_SMB,Reg_3[,4])
+  SL_Sum_Reg_3_MOM <- cbind(SL_Sum_Reg_3_MOM,Reg_3[,5])
+  SL_Sum_Reg_3_COSK <- cbind(SL_Sum_Reg_3_COSK,Reg_3[,6])
+}
+colnames(SL_Sum_Reg_1) <- c("date",1:25)
+SL_Sum_Reg_1 <- SL_Sum_Reg_1 %>% filter(date > "Jan 1996")
+colnames(SL_Sum_Reg_2_MKT) <- c("date",1:25)
+SL_Sum_Reg_2_MKT <- SL_Sum_Reg_2_MKT %>% filter(date > "Jan 1996")
+colnames(SL_Sum_Reg_2_COSK) <- c("date",1:25)
+SL_Sum_Reg_2_COSK <- SL_Sum_Reg_2_COSK %>% filter(date > "Jan 1996")
+colnames(SL_Sum_Reg_3_MKT) <- c("date",1:25)
+SL_Sum_Reg_3_MKT <- SL_Sum_Reg_3_MKT %>% filter(date > "Jan 1996")
+colnames(SL_Sum_Reg_3_HML) <- c("date",1:25)
+SL_Sum_Reg_3_HML <- SL_Sum_Reg_3_HML %>% filter(date > "Jan 1996")
+colnames(SL_Sum_Reg_3_SMB) <- c("date",1:25)
+SL_Sum_Reg_3_SMB <- SL_Sum_Reg_3_SMB %>% filter(date > "Jan 1996")
+colnames(SL_Sum_Reg_3_MOM) <- c("date",1:25)
+SL_Sum_Reg_3_MOM <- SL_Sum_Reg_3_MOM %>% filter(date > "Jan 1996")
+colnames(SL_Sum_Reg_3_COSK) <- c("date",1:25)
+SL_Sum_Reg_3_COSK <- SL_Sum_Reg_3_COSK %>% filter(date > "Jan 1996")
 
+
+SM_Sum_Reg_1 <- Size.Momentum_25$date
+SM_Sum_Reg_2_MKT <- Size.Momentum_25$date
+SM_Sum_Reg_2_COSK <- Size.Momentum_25$date
+SM_Sum_Reg_3_MKT <- Size.Momentum_25$date
+SM_Sum_Reg_3_HML <- Size.Momentum_25$date
+SM_Sum_Reg_3_SMB <- Size.Momentum_25$date
+SM_Sum_Reg_3_MOM <- Size.Momentum_25$date
+SM_Sum_Reg_3_COSK <- Size.Momentum_25$date
+for (i in 2:26){
+  reg_data <- Size.Momentum_25[,i]
+  reg_data <- cbind(as.Date(Size.Momentum_25$date,format="%d-%m-%y"),reg_data,Size.Momentum_25$MKT,Size.Momentum_25$HML,Size.Momentum_25$SMB,
+                    Size.Momentum_25$Mom, Size.Momentum_25$COSK)
+  colnames(reg_data) <- c("date","Portfolio","MKT","HML","SMB","MOM","COSK")
+  
+  Reg_1 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_1,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SM_Sum_Reg_1 <- cbind(SM_Sum_Reg_1,Reg_1[,2])
+  
+  Reg_2 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_2,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SM_Sum_Reg_2_MKT <- cbind(SM_Sum_Reg_2_MKT,Reg_2[,2])  
+  SM_Sum_Reg_2_COSK <- cbind(SM_Sum_Reg_2_COSK,Reg_2[,3]) 
+  
+  Reg_3 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_3,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SM_Sum_Reg_3_MKT <- cbind(SM_Sum_Reg_3_MKT,Reg_3[,2])
+  SM_Sum_Reg_3_HML <- cbind(SM_Sum_Reg_3_HML,Reg_3[,3])
+  SM_Sum_Reg_3_SMB <- cbind(SM_Sum_Reg_3_SMB,Reg_3[,4])
+  SM_Sum_Reg_3_MOM <- cbind(SM_Sum_Reg_3_MOM,Reg_3[,5])
+  SM_Sum_Reg_3_COSK <- cbind(SM_Sum_Reg_3_COSK,Reg_3[,6])
+}
+colnames(SM_Sum_Reg_1) <- c("date",1:25)
+SM_Sum_Reg_1 <- SM_Sum_Reg_1 %>% filter(date > "Jan 1996")
+colnames(SM_Sum_Reg_2_MKT) <- c("date",1:25)
+SM_Sum_Reg_2_MKT <- SM_Sum_Reg_2_MKT %>% filter(date > "Jan 1996")
+colnames(SM_Sum_Reg_2_COSK) <- c("date",1:25)
+SM_Sum_Reg_2_COSK <- SM_Sum_Reg_2_COSK %>% filter(date > "Jan 1996")
+colnames(SM_Sum_Reg_3_MKT) <- c("date",1:25)
+SM_Sum_Reg_3_MKT <- SM_Sum_Reg_3_MKT %>% filter(date > "Jan 1996")
+colnames(SM_Sum_Reg_3_HML) <- c("date",1:25)
+SM_Sum_Reg_3_HML <- SM_Sum_Reg_3_HML %>% filter(date > "Jan 1996")
+colnames(SM_Sum_Reg_3_SMB) <- c("date",1:25)
+SM_Sum_Reg_3_SMB <- SM_Sum_Reg_3_SMB %>% filter(date > "Jan 1996")
+colnames(SM_Sum_Reg_3_MOM) <- c("date",1:25)
+SM_Sum_Reg_3_MOM <- SM_Sum_Reg_3_MOM %>% filter(date > "Jan 1996")
+colnames(SM_Sum_Reg_3_COSK) <- c("date",1:25)
+SM_Sum_Reg_3_COSK <- SM_Sum_Reg_3_COSK %>% filter(date > "Jan 1996")
+
+
+SS_Sum_Reg_1 <- Size.STR_25$date
+SS_Sum_Reg_2_MKT <- Size.STR_25$date
+SS_Sum_Reg_2_COSK <- Size.STR_25$date
+SS_Sum_Reg_3_MKT <- Size.STR_25$date
+SS_Sum_Reg_3_HML <- Size.STR_25$date
+SS_Sum_Reg_3_SMB <- Size.STR_25$date
+SS_Sum_Reg_3_MOM <- Size.STR_25$date
+SS_Sum_Reg_3_COSK <- Size.STR_25$date
+for (i in 2:26){
+  reg_data <- Size.STR_25[,i]
+  reg_data <- cbind(as.Date(Size.STR_25$date,format="%d-%m-%y"),reg_data,Size.STR_25$MKT,Size.STR_25$HML,Size.STR_25$SMB,
+                    Size.STR_25$Mom, Size.STR_25$COSK)
+  colnames(reg_data) <- c("date","Portfolio","MKT","HML","SMB","MOM","COSK")
+  
+  Reg_1 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_1,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SS_Sum_Reg_1 <- cbind(SS_Sum_Reg_1,Reg_1[,2])
+  
+  Reg_2 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_2,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SS_Sum_Reg_2_MKT <- cbind(SS_Sum_Reg_2_MKT,Reg_2[,2])  
+  SS_Sum_Reg_2_COSK <- cbind(SS_Sum_Reg_2_COSK,Reg_2[,3])  
+  
+  Reg_3 <- reg_data %>% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period="month",
+      .f = regression_3,
+      .before = 120,
+      .complete = TRUE
+    )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+  SS_Sum_Reg_3_MKT <- cbind(SS_Sum_Reg_3_MKT,Reg_3[,2])
+  SS_Sum_Reg_3_HML <- cbind(SS_Sum_Reg_3_HML,Reg_3[,3])
+  SS_Sum_Reg_3_SMB <- cbind(SS_Sum_Reg_3_SMB,Reg_3[,4])
+  SS_Sum_Reg_3_MOM <- cbind(SS_Sum_Reg_3_MOM,Reg_3[,5])
+  SS_Sum_Reg_3_COSK <- cbind(SS_Sum_Reg_3_COSK,Reg_3[,6])
+}
+colnames(SS_Sum_Reg_1) <- c("date",1:25)
+SS_Sum_Reg_1 <- SS_Sum_Reg_1 %>% filter(date > "Jan 1996")
+colnames(SS_Sum_Reg_2_MKT) <- c("date",1:25)
+SS_Sum_Reg_2_MKT <- SS_Sum_Reg_2_MKT %>% filter(date > "Jan 1996")
+colnames(SS_Sum_Reg_2_COSK) <- c("date",1:25)
+SS_Sum_Reg_2_COSK <- SS_Sum_Reg_2_COSK %>% filter(date > "Jan 1996")
+colnames(SS_Sum_Reg_3_MKT) <- c("date",1:25)
+SS_Sum_Reg_3_MKT <- SS_Sum_Reg_3_MKT %>% filter(date > "Jan 1996")
+colnames(SS_Sum_Reg_3_HML) <- c("date",1:25)
+SS_Sum_Reg_3_HML <- SS_Sum_Reg_3_HML %>% filter(date > "Jan 1996")
+colnames(SS_Sum_Reg_3_SMB) <- c("date",1:25)
+SS_Sum_Reg_3_SMB <- SS_Sum_Reg_3_SMB %>% filter(date > "Jan 1996")
+colnames(SS_Sum_Reg_3_MOM) <- c("date",1:25)
+SS_Sum_Reg_3_MOM <- SS_Sum_Reg_3_MOM %>% filter(date > "Jan 1996")
+colnames(SS_Sum_Reg_3_COSK) <- c("date",1:25)
+SS_Sum_Reg_3_COSK <- SS_Sum_Reg_3_COSK %>% filter(date > "Jan 1996")
+```
+```{r Fama-French 2nd Step (1st regressions)}
+#Adjust data from regressions 1
+
+
+inter1<-matrix(NA,5,306)
+inter2<-matrix(NA,5,306)
+inter3<-matrix(NA,5,306)
+inter4<-matrix(NA,5,306)
+for (i in (1:306)) {
+  aux_reg_data1 <- Size.Book_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SB_Sum_Reg_1[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
+  
+  reg <- lm(V1 ~ V2,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter1[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter1[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter1[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter1[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter1[5,i] <- format(as.numeric(summary(reg)$adj.r.square))
+  
+  aux_reg_data1 <- Size.LTR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SL_Sum_Reg_1[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
+  
+  reg <- lm(V1 ~ V2,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter2[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2[5,i] <- format(as.numeric(summary(reg)$adj.r.square))  
+  
+  aux_reg_data1 <- Size.Momentum_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SM_Sum_Reg_1[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
+  
+  reg <- lm(V1 ~ V2,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter3[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3[5,i] <- format(as.numeric(summary(reg)$adj.r.square))
+  
+  aux_reg_data1 <- Size.STR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SS_Sum_Reg_1[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
+  
+  reg <- lm(V1 ~ V2,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter4[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter4[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter4[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter4[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter4[5,i] <- format(as.numeric(summary(reg)$adj.r.square))
+}
+```
+```{r Fama-French 2nd Step (2nd regressions)}
+inter2_1<-matrix(NA,7,306)
+inter2_2<-matrix(NA,7,306)
+inter2_3<-matrix(NA,7,306)
+inter2_4<-matrix(NA,7,306)
+i=1
+for (i in (1:306)) {
+  aux_reg_data1 <- Size.Book_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SB_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  aux_reg_data6 <- SB_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+  aux_reg_data6 <- as.data.frame(t(aux_reg_data6))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data6[,i]))
+  
+  reg <- lm(V1 ~ V2 + V3,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter2_1[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2_1[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2_1[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2_1[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2_1[5,i] <- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter2_1[6,i] <- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter2_1[7,i] <- format(as.numeric(summary(reg)$adj.r.square))
+  
+  
+  aux_reg_data1 <- Size.LTR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SL_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  aux_reg_data6 <- SL_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+  aux_reg_data6 <- as.data.frame(t(aux_reg_data6))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data6[,i]))
+  
+  reg <- lm(V1 ~ V2 + V3,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter2_2[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2_2[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2_2[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2_2[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2_2[5,i] <- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter2_2[6,i] <- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter2_2[7,i] <- format(as.numeric(summary(reg)$adj.r.square))
+  
+  
+  aux_reg_data1 <- Size.Momentum_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SM_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  aux_reg_data6 <- SM_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+  aux_reg_data6 <- as.data.frame(t(aux_reg_data6))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data6[,i]))
+  
+  reg <- lm(V1 ~ V2 + V3,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter2_3[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2_3[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2_3[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2_3[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2_3[5,i] <- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter2_3[6,i] <- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter2_3[7,i] <- format(as.numeric(summary(reg)$adj.r.square))
+  
+  
+  aux_reg_data1 <- Size.STR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SS_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  aux_reg_data6 <- SS_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+  aux_reg_data6 <- as.data.frame(t(aux_reg_data6))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data6[,i]))
+  
+  reg <- lm(V1 ~ V2 + V3,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter2_4[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2_4[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2_4[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2_4[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2_4[5,i] <- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter2_4[6,i] <- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter2_4[7,i] <- format(as.numeric(summary(reg)$adj.r.square))
+}
+```
+```{r Fama-French 2nd Step (3rd regressions)}
+inter3_1<-matrix(NA,13,306)
+inter3_2<-matrix(NA,13,306)
+inter3_3<-matrix(NA,13,306)
+inter3_4<-matrix(NA,13,306)
+i=1
+for (i in (1:306)) {
+  aux_reg_data1 <- Size.Book_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SB_Sum_Reg_3_MKT[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  aux_reg_data3 <- SB_Sum_Reg_3_HML[1:306,] %>% select(-c("date")) 
+  aux_reg_data3 <- as.data.frame(t(aux_reg_data3))
+  aux_reg_data4 <- SB_Sum_Reg_3_SMB[1:306,] %>% select(-c("date")) 
+  aux_reg_data4 <- as.data.frame(t(aux_reg_data4))
+  aux_reg_data5 <- SB_Sum_Reg_3_MOM[1:306,] %>% select(-c("date")) 
+  aux_reg_data5 <- as.data.frame(t(aux_reg_data5))  
+  aux_reg_data6 <- SB_Sum_Reg_3_COSK[1:306,] %>% select(-c("date"))
+  aux_reg_data6 <- as.data.frame(t(aux_reg_data6))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data3[,i],aux_reg_data4[,(i)],
+                                      aux_reg_data5[,i],aux_reg_data6[,(i)]))
+  
+  reg <- lm(V1 ~ V2 + V3 + V4 + V5 + V6,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter3_1[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3_1[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3_1[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3_1[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3_1[5,i] <- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter3_1[6,i] <- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter3_1[7,i] <- format(as.numeric(Result_i[4,2]), scientific=FALSE, digits = 3)
+  inter3_1[8,i] <- format(as.numeric(Result_i[4,4]), scientific=FALSE, digits = 3)
+  inter3_1[9,i] <- format(as.numeric(Result_i[5,2]), scientific=FALSE, digits = 3)
+  inter3_1[10,i] <- format(as.numeric(Result_i[5,4]), scientific=FALSE, digits = 3)
+  inter3_1[11,i] <- format(as.numeric(Result_i[6,2]), scientific=FALSE, digits = 3)
+  inter3_1[12,i] <- format(as.numeric(Result_i[6,4]), scientific=FALSE, digits = 3)
+  inter3_1[13,i] <- format(as.numeric(summary(reg)$adj.r.square))
+
+
+  aux_reg_data1 <- Size.LTR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SL_Sum_Reg_3_MKT[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  aux_reg_data3 <- SL_Sum_Reg_3_HML[1:306,] %>% select(-c("date")) 
+  aux_reg_data3 <- as.data.frame(t(aux_reg_data3))
+  aux_reg_data4 <- SL_Sum_Reg_3_SMB[1:306,] %>% select(-c("date")) 
+  aux_reg_data4 <- as.data.frame(t(aux_reg_data4))
+  aux_reg_data5 <- SL_Sum_Reg_3_MOM[1:306,] %>% select(-c("date")) 
+  aux_reg_data5 <- as.data.frame(t(aux_reg_data5))  
+  aux_reg_data6 <- SL_Sum_Reg_3_COSK[1:306,] %>% select(-c("date"))
+  aux_reg_data6 <- as.data.frame(t(aux_reg_data6))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data3[,i],aux_reg_data4[,(i)],
+                                      aux_reg_data5[,i],aux_reg_data6[,(i)]))
+  
+  reg <- lm(V1 ~ V2 + V3 + V4 + V5 + V6,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter3_2[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3_2[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3_2[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3_2[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3_2[5,i] <- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter3_2[6,i] <- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter3_2[7,i] <- format(as.numeric(Result_i[4,2]), scientific=FALSE, digits = 3)
+  inter3_2[8,i] <- format(as.numeric(Result_i[4,4]), scientific=FALSE, digits = 3)
+  inter3_2[9,i] <- format(as.numeric(Result_i[5,2]), scientific=FALSE, digits = 3)
+  inter3_2[10,i] <- format(as.numeric(Result_i[5,4]), scientific=FALSE, digits = 3)
+  inter3_2[11,i] <- format(as.numeric(Result_i[6,2]), scientific=FALSE, digits = 3)
+  inter3_2[12,i] <- format(as.numeric(Result_i[6,4]), scientific=FALSE, digits = 3)
+  inter3_2[13,i] <- format(as.numeric(summary(reg)$adj.r.square))
+  
+  
+  aux_reg_data1 <- Size.Momentum_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SM_Sum_Reg_3_MKT[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  aux_reg_data3 <- SM_Sum_Reg_3_HML[1:306,] %>% select(-c("date")) 
+  aux_reg_data3 <- as.data.frame(t(aux_reg_data3))
+  aux_reg_data4 <- SM_Sum_Reg_3_SMB[1:306,] %>% select(-c("date")) 
+  aux_reg_data4 <- as.data.frame(t(aux_reg_data4))
+  aux_reg_data5 <- SM_Sum_Reg_3_MOM[1:306,] %>% select(-c("date")) 
+  aux_reg_data5 <- as.data.frame(t(aux_reg_data5))  
+  aux_reg_data6 <- SM_Sum_Reg_3_COSK[1:306,] %>% select(-c("date"))
+  aux_reg_data6 <- as.data.frame(t(aux_reg_data6))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data3[,i],aux_reg_data4[,(i)],
+                                      aux_reg_data5[,i],aux_reg_data6[,(i)]))
+  
+  reg <- lm(V1 ~ V2 + V3 + V4 + V5 + V6,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter3_3[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3_3[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3_3[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3_3[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3_3[5,i] <- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter3_3[6,i] <- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter3_3[7,i] <- format(as.numeric(Result_i[4,2]), scientific=FALSE, digits = 3)
+  inter3_3[8,i] <- format(as.numeric(Result_i[4,4]), scientific=FALSE, digits = 3)
+  inter3_3[9,i] <- format(as.numeric(Result_i[5,2]), scientific=FALSE, digits = 3)
+  inter3_3[10,i] <- format(as.numeric(Result_i[5,4]), scientific=FALSE, digits = 3)
+  inter3_3[11,i] <- format(as.numeric(Result_i[6,2]), scientific=FALSE, digits = 3)
+  inter3_3[12,i] <- format(as.numeric(Result_i[6,4]), scientific=FALSE, digits = 3)
+  inter3_3[13,i] <- format(as.numeric(summary(reg)$adj.r.square))  
+  
+  
+  aux_reg_data1 <- Size.STR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+  aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 <- SS_Sum_Reg_3_MKT[1:306,] %>% select(-c("date")) 
+  aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
+  aux_reg_data3 <- SS_Sum_Reg_3_HML[1:306,] %>% select(-c("date")) 
+  aux_reg_data3 <- as.data.frame(t(aux_reg_data3))
+  aux_reg_data4 <- SS_Sum_Reg_3_SMB[1:306,] %>% select(-c("date")) 
+  aux_reg_data4 <- as.data.frame(t(aux_reg_data4))
+  aux_reg_data5 <- SS_Sum_Reg_3_MOM[1:306,] %>% select(-c("date")) 
+  aux_reg_data5 <- as.data.frame(t(aux_reg_data5))  
+  aux_reg_data6 <- SS_Sum_Reg_3_COSK[1:306,] %>% select(-c("date"))
+  aux_reg_data6 <- as.data.frame(t(aux_reg_data6))
+  fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data3[,i],aux_reg_data4[,(i)],
+                                      aux_reg_data5[,i],aux_reg_data6[,(i)]))
+  
+  reg <- lm(V1 ~ V2 + V3 + V4 + V5 + V6,data = fin_reg_data)
+  Result_i <- as.data.frame(tidy(reg))
+  inter3_4[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3_4[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3_4[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3_4[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3_4[5,i] <- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter3_4[6,i] <- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter3_4[7,i] <- format(as.numeric(Result_i[4,2]), scientific=FALSE, digits = 3)
+  inter3_4[8,i] <- format(as.numeric(Result_i[4,4]), scientific=FALSE, digits = 3)
+  inter3_4[9,i] <- format(as.numeric(Result_i[5,2]), scientific=FALSE, digits = 3)
+  inter3_4[10,i] <- format(as.numeric(Result_i[5,4]), scientific=FALSE, digits = 3)
+  inter3_4[11,i] <- format(as.numeric(Result_i[6,2]), scientific=FALSE, digits = 3)
+  inter3_4[12,i] <- format(as.numeric(Result_i[6,4]), scientific=FALSE, digits = 3)
+  inter3_4[13,i] <- format(as.numeric(summary(reg)$adj.r.square))
+}
+```
+```{r Preparing Table 2}
+beta_0 <- as.numeric(c(mean(as.numeric(inter1[1,])),mean(as.numeric(inter2_1[1,])),mean(as.numeric(inter3_1[1,])),
+            mean(as.numeric(inter3[1,])),mean(as.numeric(inter2_3[1,])),mean(as.numeric(inter3_3[1,])),
+            mean(as.numeric(inter4[1,])),mean(as.numeric(inter2_4[1,])),mean(as.numeric(inter3_4[1,])),
+            mean(as.numeric(inter2[1,])),mean(as.numeric(inter2_2[1,])),mean(as.numeric(inter3_2[1,]))))
+beta_0
+
+t_val_b0 <- as.numeric(c(mean(as.numeric(inter1[2,])),mean(as.numeric(inter2_1[2,])),mean(as.numeric(inter3_1[2,])),
+              mean(as.numeric(inter3[2,])),mean(as.numeric(inter2_3[2,])),mean(as.numeric(inter3_3[2,])),
+              mean(as.numeric(inter4[2,])),mean(as.numeric(inter2_4[2,])),mean(as.numeric(inter3_4[2,])),
+              mean(as.numeric(inter2[2,])),mean(as.numeric(inter2_2[2,])),mean(as.numeric(inter3_2[2,]))))
+t_val_b0
+
+b_MKT <-  as.numeric(c(mean(as.numeric(inter1[3,])),mean(as.numeric(inter2_1[3,])),mean(as.numeric(inter3_1[3,])),
+            mean(as.numeric(inter3[3,])),mean(as.numeric(inter2_3[3,])),mean(as.numeric(inter3_3[3,])),
+            mean(as.numeric(inter4[3,])),mean(as.numeric(inter2_4[3,])),mean(as.numeric(inter3_4[3,])),
+            mean(as.numeric(inter2[3,])),mean(as.numeric(inter2_2[3,])),mean(as.numeric(inter3_2[3,]))))
+b_MKT
+
+t_val_b1 <- as.numeric(c(mean(as.numeric(inter1[4,])),mean(as.numeric(inter2_1[4,])),mean(as.numeric(inter3_1[4,])),
+              mean(as.numeric(inter3[4,])),mean(as.numeric(inter2_3[4,])),mean(as.numeric(inter3_3[4,])),
+              mean(as.numeric(inter4[4,])),mean(as.numeric(inter2_4[4,])),mean(as.numeric(inter3_4[4,])),
+              mean(as.numeric(inter2[4,])),mean(as.numeric(inter2_2[4,])),mean(as.numeric(inter3_2[4,]))))
+t_val_b1
+
+b_HML <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[5,])),
+           " "," ",mean(as.numeric(inter3_3[5,])),
+           " "," ",mean(as.numeric(inter3_4[5,])),
+           " "," ",mean(as.numeric(inter3_2[5,]))))
+b_HML
+
+t_val_b2 <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[6,])),
+              " "," ",mean(as.numeric(inter3_3[6,])),
+              " "," ",mean(as.numeric(inter3_4[6,])),
+              " "," ",mean(as.numeric(inter3_2[6,]))))
+t_val_b2
+
+b_SMB <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[7,])),
+           " "," ",mean(as.numeric(inter3_3[7,])),
+           " "," ",mean(as.numeric(inter3_4[7,])),
+           " "," ",mean(as.numeric(inter3_2[7,]))))
+as.numeric()
+b_SMB
+t_val_b3 <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[8,])),
+              " "," ",mean(as.numeric(inter3_3[8,])),
+              " "," ",mean(as.numeric(inter3_4[8,])),
+              " "," ",mean(as.numeric(inter3_2[8,]))))
+t_val_b3
+
+b_MOM <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[9,])),
+           " "," ",mean(as.numeric(inter3_3[9,])),
+           " "," ",mean(as.numeric(inter3_4[9,])),
+           " "," ",mean(as.numeric(inter3_2[9,]))))
+b_MOM
+t_val_b4 <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[10,])),
+              " "," ",mean(as.numeric(inter3_3[10,])),
+              " "," ",mean(as.numeric(inter3_4[10,])),
+              " "," ",mean(as.numeric(inter3_2[10,]))))
+t_val_b4
+
+b_COSK <- as.numeric(c(" ",mean(as.numeric(inter2_1[5,])),mean(as.numeric(inter3_1[11,])),
+            " ",mean(as.numeric(inter2_3[5,])),mean(as.numeric(inter3_3[11,])),
+            " ",mean(as.numeric(inter2_4[5,])),mean(as.numeric(inter3_4[11,])),
+            " ",mean(as.numeric(inter2_2[5,])),mean(as.numeric(inter3_2[11,]))))
+b_COSK
+t_val_b5 <- as.numeric(c(" ",mean(as.numeric(inter2_1[6,])),mean(as.numeric(inter3_1[12,])),
+              " ",mean(as.numeric(inter2_3[6,])),mean(as.numeric(inter3_3[12,])),
+              " ",mean(as.numeric(inter2_4[6,])),mean(as.numeric(inter3_4[12,])),
+              " ",mean(as.numeric(inter2_2[6,])),mean(as.numeric(inter3_2[12,]))))
+t_val_b5
+adj.R.aq <- as.numeric(c(mean(as.numeric(inter1[5,])),mean(as.numeric(inter2_1[7,])),mean(as.numeric(inter3_1[13,])),
+            mean(as.numeric(inter3[5,])),mean(as.numeric(inter2_3[7,])),mean(as.numeric(inter3_3[13,])),
+            mean(as.numeric(inter4[5,])),mean(as.numeric(inter2_4[7,])),mean(as.numeric(inter3_4[13,])),
+            mean(as.numeric(inter2[5,])),mean(as.numeric(inter2_2[7,])),mean(as.numeric(inter3_2[13,]))))
+
+Table_2 <- rbind(beta_0, t_val_b0, b_MKT, t_val_b1, b_HML,
+                 t_val_b2, b_SMB, t_val_b3, b_MOM, t_val_b4,
+                 b_COSK, t_val_b5, adj.R.aq)
+Table_2 <- round(Table_2, digits = 3)
+Table_2 <- replace(Table_2, is.na(Table_2), "")
+rownames(Table_2) <- c("l_0","","l_MKT","","l_HML","","l_SMB","","l_MOM","","l_COSK","","Adj.R.sq")
+colnames(Table_2) <- c("Size-to-Book 1","Size-to-Book 2","Size-to-Book 3","Size-to-Momentum 1","Size-to-Momentum 2","Size-to-Momentum 3",
+                       "Size-to-STR 1", "Size-to-STR 2", "Size-to-STR 3", "Size-to-LTR 1",  "Size-to-STR 2", "Size-to-STR 3")
+
+```
+```{r Table 2}
+pdf("Table 2.pdf", width = 20, height = 5)
+  grid.table(Table_2)
+dev.off()
+write.csv(Table_2, file = "Table2.csv")
 ```
 
 
@@ -230,6 +948,42 @@ Size.STR_25 <- FFdata$x_25_Portfolios_ME_Prior_1_0$monthly$average_value_weighte
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################################
+JUNK
+################################################################################
 
 #HAR model for Formula 17. From this model we will get coefficients to calculate the estimation of physical second moments.
 regression_summary <- function(df){
@@ -255,7 +1009,7 @@ table <- slide_period(data_SNP500,data_SNP500$Date,.period = "year",identity,.ev
 ################################################################
 #I AM NOW HERE, trying to implement recursive regression
 
-```
+
 
 ```{r Example for HAR model}
 # Example 1: HAR
@@ -310,6 +1064,16 @@ coefs <- coefficients(x)
 data_SNP500 <- data_SNP500 %>% mutate(estimated_volatility = coefs[1] + coefs[2]*rollsum(Day_Vol,1) + coefs[3]*Wek_Vol + coefs[4]*Mon_Vol)
 
 rolling_lms <- lapply(seq(20,nrow(df) ), function(x) lm( Y ~ X1+X2, data = df[1:x , ]) )
+
+
+table_RNSM<-describe(data_VIX$RNSM)
+plot(data_VIX$Date,data_VIX$RNSM, type="l")
+
+table_PSM<-describe(data_SNP500$PSM)
+plot(data_SNP500$Date,data_SNP500$PSM, type="l")
+
+table_CSP<-describe(CS_Price$Price)
+plot(CS_Price$Date,CS_Price$Price, type = "l")
 ```
 
 
