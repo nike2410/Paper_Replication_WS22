@@ -123,7 +123,7 @@ data_SNP500 <- data_SNP500 %>% mutate(
   filter(numday == max(numday))
 ```
 ```{r Price of Co-skewness Risk}
-#The difference from previous estimators is our COSK price of the risk estimation of Option Implied approach
+#The difference from previous estimators (RNSM and PSM) is our COSK price of the risk estimation of Option Implied approach
 CS_Price <- tibble(
   Date = data_SNP500$Date,
   Price = data_SNP500$PSM - data_VIX$RNSM
@@ -136,6 +136,7 @@ pdf("Figure 1.pdf",         # File name
     bg = "white",          # Background color
     colormodel = "cmyk",    # Color model (cmyk is required for most publications)
     paper = "A4")
+#Connecting three plots to a single files
 par(mfrow = c(3,1))
 plot(data_SNP500$Date,data_SNP500$PSM, type="l",
      xlab = "", ylab = "",
@@ -229,6 +230,7 @@ Size.Book_25 <- FFdata$x_25_Portfolios_5x5$monthly$average_value_weighted_return
   left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by="date") %>%
   left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = "date")%>%
   filter(date > "Jan 1986") %>% filter(date < "Sep 2021") %>%
+  #addingtwo columns for market return (MKT) and COSK (square of excess return)
   mutate(MKT = Mkt.RF+RF,
          COSK = Mkt.RF^2)
 
@@ -265,6 +267,9 @@ rm(temptxt)
 ```{r Fama-French 1st Step}
 #First stage regressions (time-series regressions with formula): 
 #R(j,t) = b0 + bn*factor
+
+#Time series regressions, where return of each portfolio is explained by Fama-French factors and 
+#Co-skewness estimator
 regression_1 <- function(reg_data){
     reg <- lm(Portfolio ~ MKT, data=reg_data)
     return(tibble("date"=(reg_data$date),
@@ -989,7 +994,7 @@ err_OI <- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
 err_RB <- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
 
 #Estimating cross sectional mean square error (Formula 24)
-aux_err <- err_OI - err_RB
+aux_err <- err_RB - err_OI
 SUM <- c()
 for (i in (1:306)) {
   SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
@@ -1079,7 +1084,7 @@ err_OI <- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
 err_RB <- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
 
 #Estimating cross sectional mean square error (Formula 24)
-aux_err <- err_OI - err_RB
+aux_err <- err_RB - err_OI
 SUM <- c()
 for (i in (1:306)) {
   SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
