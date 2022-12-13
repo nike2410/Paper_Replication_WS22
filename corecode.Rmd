@@ -28,10 +28,11 @@ library(psych)
 #############################################################
 
 ```{r Risk-Neutral Second Moment}
+#Exporting the data from VIX index (using VXO ticker from Yahoo). 
+#We use monthly data. Data frame is from Feb 1986 to Sep 2021
 data_VIX <- as.data.frame(read.csv("^VXO.csv"))
 
 data_VIX <- data_VIX %>% mutate(Date = ymd(Date))
-
 data_VIX$numday <- as.numeric(format(as.Date(data_VIX$Date), '%Y%m%d'))
 
 #Calculated risk-neutral second moment: just taking square
@@ -41,33 +42,39 @@ data_VIX <- select(data_VIX, -c(Open, Low, High, Close, Volume)) %>%
   mutate(RNSM=(Adj.Close/100)^2)
 ```
 ```{r Physical second moment}
-#Implementing formula 19 to calculate daily varience
-
 #Changing data formats
-data_SNP500 <- read.csv("MCD.csv") %>% as.data.frame() %>% as_tibble()
+require("quantmod")
+sp500 <- new.env()
+getSymbols("^GSPC", env = sp500, src = "yahoo",
+           from = as.Date("1976-01-01"), to = as.Date("2022-01-01"))
+
+GSPC <- sp500$GSPC
+GSPC1 <- get("GSPC", envir = sp500)
+GSPC2 <- with(sp500, GSPC)
+rm(GSPC1)
+rm(GSPC2)
+data_SNP500 <- data.frame(date=index(GSPC), coredata(GSPC))
+colnames(data_SNP500) <- c("Date", "Open", "High", "Low", "Close","Volume", "Adj.Close")
+data_SNP500[data_SNP500 == 0] <- 99.99
 
 data_SNP500 <- data_SNP500 %>% mutate(Date = ymd(Date)) 
 data_SNP500$Year = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%Y") 
 data_SNP500$Month = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%m") 
 data_SNP500$Day = format(as.Date(data_SNP500$Date, format='%Y%m%d'),"%d") 
-
-
 data_SNP500$numday <- as.numeric(format(as.Date(data_SNP500$Date), '%Y%m%d'))
 
 data_SNP500 <- data_SNP500 %>% select(-c(Volume))
 
-
 #Formula 19 from the paper (calculation of implied volatility)
-
 data_SNP500 <- data_SNP500 %>% mutate(
   Day_Vol = (log(High/Open) * (log(High/Open) - log(Close/Open))) + 
     (log(Low/Open) * (log(Low/Open) - log(Close/Open))))
 
-#Formula 18 (calculation of daily, weekly, monthly volatilities)
-
+#Formula 17 for VK
+#Formula 18 for V2, V5 and V20 (calculation of daily, weekly, monthly volatilities)
 data_SNP500 <- data_SNP500 %>% 
   mutate(
-    VK = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .after=30, .complete = TRUE),
+    VK = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .after=20, .complete = TRUE),
     V2 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 1, 
                    .complete = TRUE),
     V5 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 4, 
@@ -79,6 +86,7 @@ data_SNP500 <- data_SNP500 %>%
 #HAR model for Formula 17. From this model we will get coefficients to 
 #calculate the estimation of physical second moments.
 
+#Assign the function to produce phies
 regression_summary <- function(data_SNP500){
     reg <- lm(VK ~ V2+V5+V21, data=data_SNP500)
     return(tibble("date"=(data_SNP500$Date),
@@ -88,6 +96,7 @@ regression_summary <- function(data_SNP500){
                   "phi3"=coef(reg)[4]))
 }
 
+#Execute regressions with rolling window and give me phies
 Reg_SNP500 <- data_SNP500 %>% 
   summarise(model = slide_period(
     .x = cur_data(),
@@ -98,20 +107,23 @@ Reg_SNP500 <- data_SNP500 %>%
     .complete = TRUE
   )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
 
-
+#Input the phies to main dataset of SNP500 to get the estimations of Second moment
 data_SNP500 <- data_SNP500 %>%
   mutate(
     phi0 = Reg_SNP500$phi0,
     phi1 = Reg_SNP500$phi1,
     phi2 = Reg_SNP500$phi2,
     phi3 = Reg_SNP500$phi3,
-    PSM = phi0 + phi1*V2 + phi2*V5 + phi3*V21
-  ) %>%
+    aux_PSM = phi0 + phi1*V2 + phi2*V5 + phi3*V21) 
+
+data_SNP500 <- data_SNP500 %>% mutate(
+  PSM = slide_dbl(data_SNP500$aux_PSM, ~sum(.x), .after = 20, .complete = TRUE)) %>% 
   filter(numday < 20210901 & numday > 19860201) %>%
   group_by(Year, Month) %>%
   filter(numday == max(numday))
 ```
 ```{r Price of Co-skewness Risk}
+#The difference from previous estimators is our COSK price of the risk estimation of Option Implied approach
 CS_Price <- tibble(
   Date = data_SNP500$Date,
   Price = data_SNP500$PSM - data_VIX$RNSM
@@ -122,8 +134,7 @@ CS_Price <- tibble(
 pdf("Figure 1.pdf",         # File name
     width = 8, height = 7, # Width and height in inches
     bg = "white",          # Background color
-    colormodel = "cmyk",    # Color model (cmyk is required for most 
-                            # publications)
+    colormodel = "cmyk",    # Color model (cmyk is required for most publications)
     paper = "A4")
 par(mfrow = c(3,1))
 plot(data_SNP500$Date,data_SNP500$PSM, type="l",
@@ -254,9 +265,6 @@ rm(temptxt)
 ```{r Fama-French 1st Step}
 #First stage regressions (time-series regressions with formula): 
 #R(j,t) = b0 + bn*factor
-
-
-
 regression_1 <- function(reg_data){
     reg <- lm(Portfolio ~ MKT, data=reg_data)
     return(tibble("date"=(reg_data$date),
@@ -276,7 +284,8 @@ regression_3 <- function(reg_data){
                   "SMB_beta3"=coef(reg)[4],
                   "MOM_beta3"=coef(reg)[5],
                   "COSK_beta3"=coef(reg)[6]))
-    }
+}
+#Vectors to store betas
 SB_Sum_Reg_1 <- Size.Book_25$date
 SB_Sum_Reg_2_MKT <- Size.Book_25$date
 SB_Sum_Reg_2_COSK <- Size.Book_25$date
@@ -285,13 +294,13 @@ SB_Sum_Reg_3_HML <- Size.Book_25$date
 SB_Sum_Reg_3_SMB <- Size.Book_25$date
 SB_Sum_Reg_3_MOM <- Size.Book_25$date
 SB_Sum_Reg_3_COSK <- Size.Book_25$date
-
+#run loop to run regressions on different portfolios
 for (i in 2:26){
   reg_data <- Size.Book_25[,i]
   reg_data <- cbind(as.Date(Size.Book_25$date,format="%d-%m-%y"),reg_data,Size.Book_25$MKT,Size.Book_25$HML,Size.Book_25$SMB,
                     Size.Book_25$Mom, Size.Book_25$COSK)
   colnames(reg_data) <- c("date","Portfolio","MKT","HML","SMB","MOM","COSK")
-  
+#Run regressions with rolling window
   Reg_1 <- reg_data %>% 
     dplyr::summarise(model = slide_period(
       .x = cur_data(),
@@ -301,8 +310,10 @@ for (i in 2:26){
       .before = 120,
       .complete = TRUE
     )) %>% unnest(model) %>% distinct(date, .keep_all = TRUE)
+#Store betas in respective vector
   SB_Sum_Reg_1 <- cbind(SB_Sum_Reg_1,Reg_1[,2])
-  
+
+  #Same logic from above  
   Reg_2 <- reg_data %>% 
     dplyr::summarise(model = slide_period(
       .x = cur_data(),
@@ -330,6 +341,7 @@ for (i in 2:26){
   SB_Sum_Reg_3_MOM <- cbind(SB_Sum_Reg_3_MOM,Reg_3[,5])
   SB_Sum_Reg_3_COSK <- cbind(SB_Sum_Reg_3_COSK,Reg_3[,6])
 }
+#data cleaning: name columns and remove periods of first 120 months window
 colnames(SB_Sum_Reg_1) <- c("date",1:25)
 SB_Sum_Reg_1 <- SB_Sum_Reg_1 %>% filter(date > "Jan 1996")
 colnames(SB_Sum_Reg_2_MKT) <- c("date",1:25)
@@ -347,7 +359,7 @@ SB_Sum_Reg_3_MOM <- SB_Sum_Reg_3_MOM %>% filter(date > "Jan 1996")
 colnames(SB_Sum_Reg_3_COSK) <- c("date",1:25)
 SB_Sum_Reg_3_COSK <- SB_Sum_Reg_3_COSK %>% filter(date > "Jan 1996")
 
-
+#We are repeating the same from Size.Book
 SL_Sum_Reg_1 <- Size.LTR_25$date
 SL_Sum_Reg_2_MKT <- Size.LTR_25$date
 SL_Sum_Reg_2_COSK <- Size.LTR_25$date
@@ -417,7 +429,7 @@ SL_Sum_Reg_3_MOM <- SL_Sum_Reg_3_MOM %>% filter(date > "Jan 1996")
 colnames(SL_Sum_Reg_3_COSK) <- c("date",1:25)
 SL_Sum_Reg_3_COSK <- SL_Sum_Reg_3_COSK %>% filter(date > "Jan 1996")
 
-
+#We are repeating the same from Size.Book
 SM_Sum_Reg_1 <- Size.Momentum_25$date
 SM_Sum_Reg_2_MKT <- Size.Momentum_25$date
 SM_Sum_Reg_2_COSK <- Size.Momentum_25$date
@@ -487,7 +499,7 @@ SM_Sum_Reg_3_MOM <- SM_Sum_Reg_3_MOM %>% filter(date > "Jan 1996")
 colnames(SM_Sum_Reg_3_COSK) <- c("date",1:25)
 SM_Sum_Reg_3_COSK <- SM_Sum_Reg_3_COSK %>% filter(date > "Jan 1996")
 
-
+#We are repeating the same from Size.Book
 SS_Sum_Reg_1 <- Size.STR_25$date
 SS_Sum_Reg_2_MKT <- Size.STR_25$date
 SS_Sum_Reg_2_COSK <- Size.STR_25$date
@@ -559,26 +571,32 @@ SS_Sum_Reg_3_COSK <- SS_Sum_Reg_3_COSK %>% filter(date > "Jan 1996")
 ```
 ```{r Fama-French 2nd Step (1st regressions)}
 #Adjust data from regressions 1
-
-
 inter1<-matrix(NA,5,306)
 inter2<-matrix(NA,5,306)
 inter3<-matrix(NA,5,306)
 inter4<-matrix(NA,5,306)
 for (i in (1:306)) {
+  #Returns vector
   aux_reg_data1 <- Size.Book_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
   aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
+  #Betas vector
   aux_reg_data2 <- SB_Sum_Reg_1[1:306,] %>% select(-c("date")) 
   aux_reg_data2 <- as.data.frame(t(aux_reg_data2))
   fin_reg_data <- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
   
+#V1 - Return of portfolio
+# V2 - MKT
+# V3 - HML
+# V4 - SMB
+# V5 - MOM  
+# V6 - COSK
   reg <- lm(V1 ~ V2,data = fin_reg_data)
   Result_i <- as.data.frame(tidy(reg))
-  inter1[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
-  inter1[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
-  inter1[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
-  inter1[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
-  inter1[5,i] <- format(as.numeric(summary(reg)$adj.r.square))
+  inter1[1,i] <- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3) #lambdas from Intercept
+  inter1[2,i] <- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3) #t-values of prev. lambda
+  inter1[3,i] <- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3) #lambdas from MKT
+  inter1[4,i] <- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3) #t-values of prev. lambda
+  inter1[5,i] <- format(as.numeric(summary(reg)$adj.r.square)) #adj.r.square
   
   aux_reg_data1 <- Size.LTR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
   aux_reg_data1 <- as.data.frame(t(aux_reg_data1))
@@ -890,8 +908,8 @@ b_SMB <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[7,])),
            " "," ",mean(as.numeric(inter3_3[7,])),
            " "," ",mean(as.numeric(inter3_4[7,])),
            " "," ",mean(as.numeric(inter3_2[7,]))))
-as.numeric()
 b_SMB
+
 t_val_b3 <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[8,])),
               " "," ",mean(as.numeric(inter3_3[8,])),
               " "," ",mean(as.numeric(inter3_4[8,])),
@@ -903,6 +921,7 @@ b_MOM <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[9,])),
            " "," ",mean(as.numeric(inter3_4[9,])),
            " "," ",mean(as.numeric(inter3_2[9,]))))
 b_MOM
+
 t_val_b4 <- as.numeric(c(" "," ",mean(as.numeric(inter3_1[10,])),
               " "," ",mean(as.numeric(inter3_3[10,])),
               " "," ",mean(as.numeric(inter3_4[10,])),
@@ -914,11 +933,13 @@ b_COSK <- as.numeric(c(" ",mean(as.numeric(inter2_1[5,])),mean(as.numeric(inter3
             " ",mean(as.numeric(inter2_4[5,])),mean(as.numeric(inter3_4[11,])),
             " ",mean(as.numeric(inter2_2[5,])),mean(as.numeric(inter3_2[11,]))))
 b_COSK
+
 t_val_b5 <- as.numeric(c(" ",mean(as.numeric(inter2_1[6,])),mean(as.numeric(inter3_1[12,])),
               " ",mean(as.numeric(inter2_3[6,])),mean(as.numeric(inter3_3[12,])),
               " ",mean(as.numeric(inter2_4[6,])),mean(as.numeric(inter3_4[12,])),
               " ",mean(as.numeric(inter2_2[6,])),mean(as.numeric(inter3_2[12,]))))
 t_val_b5
+
 adj.R.aq <- as.numeric(c(mean(as.numeric(inter1[5,])),mean(as.numeric(inter2_1[7,])),mean(as.numeric(inter3_1[13,])),
             mean(as.numeric(inter3[5,])),mean(as.numeric(inter2_3[7,])),mean(as.numeric(inter3_3[13,])),
             mean(as.numeric(inter4[5,])),mean(as.numeric(inter2_4[7,])),mean(as.numeric(inter3_4[13,])),
@@ -949,6 +970,7 @@ write.csv(Table_2, file = "Table2.csv")
 Table_2
 ```
 ```{r Prepareation Table 3: SB}
+#We calculate the difference 
 err_OI <- list()
 err_RB <- list()
 COSK_oest <- Table_1[1,3]
