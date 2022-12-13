@@ -971,84 +971,123 @@ Table_2
 ```
 ```{r Prepareation Table 3: SB}
 #We calculate the difference 
-err_OI <- list()
-err_RB <- list()
-COSK_oest <- Table_1[1,3]
+#Initiate empty vectors
+err_OI <- as.data.frame(NA)
+err_RB <- as.data.frame(NA)
+#Apply estimators from option based (OI) and regression based (RB) COSK and MKT from regressions
+COSK_oest <- Table_1[1,3]*100
 COSK_rest <- as.numeric(Table_2[6,2])
 MKT_rest <- as.numeric(Table_2[2,2])
 #i=1
-for (i in (1:25)) {
-  aux_R <- Size.Book_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
-  aux_b_MKT <- SB_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
-  aux_b_COSK <- SB_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
-  err_OI[i] <- aux_R[,i] - COSK_oest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
-  err_RB[i] <- aux_R[,i] - COSK_rest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+
+#Calculation of residuals and making a matrix with them squared
+aux_R <- Size.Book_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+aux_b_MKT <- SB_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+aux_b_COSK <- SB_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+#Squaring residuals
+err_OI <- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+err_RB <- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+
+#Estimating cross sectional mean square error (Formula 24)
+aux_err <- err_OI - err_RB
+SUM <- c()
+for (i in (1:306)) {
+  SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
 }
-E_SB <- c()
-for (i in (1:25)) {
-  E_SB[i] = sum((err_OI[[i]]^2) - (err_RB[[i]]^2))
-}
-MSE_SB = sum(E_SB)/25*12
+aux_err <- cbind(aux_err,SUM)
+#Getting MSE with formula 23
+MSE_SB <- sum(aux_err$SUM)/306
+#Same procedure in next MSEs
 ```
 ```{r Prepareation Table 3: SM}
-err_OI <- list()
-err_RB <- list()
-COSK_oest <- Table_1[1,3]
+#We calculate the difference 
+#Initiate empty vectors
+err_OI <- as.data.frame(NA)
+err_RB <- as.data.frame(NA)
+#Apply estimators from option based (OI) and regression based (RB) COSK and MKT from regressions
+COSK_oest <- Table_1[1,3]*100
 COSK_rest <- as.numeric(Table_2[6,2])
 MKT_rest <- as.numeric(Table_2[2,2])
 #i=1
-for (i in (1:25)) {
-  aux_R <- Size.Momentum_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
-  aux_b_MKT <- SM_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
-  aux_b_COSK <- SM_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
-  err_OI[i] <- aux_R[,i] - COSK_oest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
-  err_RB[i] <- aux_R[,i] - COSK_rest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+
+#Calculation of residuals and making a matrix with them squared
+aux_R <- Size.Momentum_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+aux_b_MKT <- SM_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+aux_b_COSK <- SM_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+#Squaring residuals
+err_OI <- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+err_RB <- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+
+#Estimating cross sectional mean square error (Formula 24)
+aux_err <- err_OI - err_RB
+SUM <- c()
+for (i in (1:306)) {
+  SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
 }
-E_SM <- c()
-for (i in (1:25)) {
-  E_SM[i] = sum((err_OI[[i]]^2) - (err_RB[[i]]^2))
-}
-MSE_SM = sum(E_SM)/25*12
+aux_err <- cbind(aux_err,SUM)
+#Getting MSE with formula 23
+MSE_SM <- sum(aux_err$SUM)/306
+#Same procedure in next MSEs
 ```
 ```{r Prepareation Table 3: SS}
-err_OI <- list()
-err_RB <- list()
-COSK_oest <- Table_1[1,3]
+#We calculate the difference 
+#Initiate empty vectors
+err_OI <- as.data.frame(NA)
+err_RB <- as.data.frame(NA)
+#Apply estimators from option based (OI) and regression based (RB) COSK and MKT from regressions
+COSK_oest <- Table_1[1,3]*100
 COSK_rest <- as.numeric(Table_2[6,2])
 MKT_rest <- as.numeric(Table_2[2,2])
 #i=1
-for (i in (1:25)) {
-  aux_R <- Size.STR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
-  aux_b_MKT <- SS_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
-  aux_b_COSK <- SS_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
-  err_OI[i] <- aux_R[,i] - COSK_oest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
-  err_RB[i] <- aux_R[,i] - COSK_rest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+
+#Calculation of residuals and making a matrix with them squared
+aux_R <- Size.STR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+aux_b_MKT <- SS_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+aux_b_COSK <- SS_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+#Squaring residuals
+err_OI <- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+err_RB <- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+
+#Estimating cross sectional mean square error (Formula 24)
+aux_err <- err_OI - err_RB
+SUM <- c()
+for (i in (1:306)) {
+  SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
 }
-E_SS <- c()
-for (i in (1:25)) {
-  E_SS[i] = sum((err_OI[[i]]^2) - (err_RB[[i]]^2))
-}
-MSE_SS = sum(E_SS)/25*12
+aux_err <- cbind(aux_err,SUM)
+#Getting MSE with formula 23
+MSE_SS <- sum(aux_err$SUM)/306
+#Same procedure in next MSEs
 ```
 ```{r Prepareation Table 3: SL}
-err_OI <- list()
-err_RB <- list()
-COSK_oest <- Table_1[1,3]
+#We calculate the difference 
+#Initiate empty vectors
+err_OI <- as.data.frame(NA)
+err_RB <- as.data.frame(NA)
+#Apply estimators from option based (OI) and regression based (RB) COSK and MKT from regressions
+COSK_oest <- Table_1[1,3]*100
 COSK_rest <- as.numeric(Table_2[6,2])
 MKT_rest <- as.numeric(Table_2[2,2])
 #i=1
-for (i in (1:25)) {
-  aux_R <- Size.LTR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
-  aux_b_MKT <- SL_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
-  aux_b_COSK <- SL_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
-  err_OI[i] <- aux_R[,i] - COSK_oest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
-  err_RB[i] <- aux_R[,i] - COSK_rest * aux_b_COSK[,i] - MKT_rest * aux_b_MKT[,i]
+
+#Calculation of residuals and making a matrix with them squared
+aux_R <- Size.LTR_25[(122:427),] %>% select(-c("date","Mkt.RF","HML","SMB","Mom","RF","COSK","MKT"))
+aux_b_MKT <- SL_Sum_Reg_2_MKT[1:306,] %>% select(-c("date")) 
+aux_b_COSK <- SL_Sum_Reg_2_COSK[1:306,] %>% select(-c("date"))
+#Squaring residuals
+err_OI <- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+err_RB <- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+
+#Estimating cross sectional mean square error (Formula 24)
+aux_err <- err_OI - err_RB
+SUM <- c()
+for (i in (1:306)) {
+  SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
 }
-E_SL <- c()
-for (i in (1:25)) {
-  E_SL[i] = sum((err_OI[[i]]^2) - (err_RB[[i]]^2))
-}
-MSE_SL = sum(E_SL)/25*12
+aux_err <- cbind(aux_err,SUM)
+#Getting MSE with formula 23
+MSE_SL <- sum(aux_err$SUM)/306
+#Same procedure in next MSEs
 ```
 ```{r Table 3}
 Table_3 <- cbind(MSE_SB,MSE_SM,MSE_SS,MSE_SL)
