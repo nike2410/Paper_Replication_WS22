@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title></title>
+
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<pre><code class="language-{r">#activating packages
+
+library(lubridate)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(readxl)
+library(fmdates)
+library(zoo)
+library(moments)
+library(lubridate)
+library(xts)
+library(HARModel)
+library(slider)
+library(broom)
+library(tidyverse)
+library(psych)
+</code></pre>
+<p>#############################################################
+#####CALCULATION PRICE OF CO-SKEWNESS RISK: Option-Based#####
+#############################################################</p>
+<pre><code class="language-{r">#Exporting the data from VIX index (using VXO ticker from Yahoo). 
+#We use monthly data. Data frame is from Feb 1986 to Sep 2021
+data_VIX &lt;- as.data.frame(read.csv(&quot;^VXO.csv&quot;))
+
+data_VIX &lt;- data_VIX %&gt;% mutate(Date = ymd(Date))
+data_VIX$numday &lt;- as.numeric(format(as.Date(data_VIX$Date), '%Y%m%d'))
+
+#Calculated risk-neutral second moment: just taking square
+data_VIX$Adj.Close &lt;- as.numeric(data_VIX$Adj.Close)
+data_VIX &lt;- select(data_VIX, -c(Open, Low, High, Close, Volume)) %&gt;% 
+  filter(numday &lt; 20210901 &amp; numday &gt; 19860101) %&gt;% 
+  mutate(RNSM=(Adj.Close/100)^2)
+</code></pre>
+<pre><code class="language-{r">#Changing data formats
+require(&quot;quantmod&quot;)
+sp500 &lt;- new.env()
+getSymbols(&quot;^GSPC&quot;, env = sp500, src = &quot;yahoo&quot;,
+           from = as.Date(&quot;1976-01-01&quot;), to = as.Date(&quot;2022-01-01&quot;))
+
+GSPC &lt;- sp500$GSPC
+GSPC1 &lt;- get(&quot;GSPC&quot;, envir = sp500)
+GSPC2 &lt;- with(sp500, GSPC)
+rm(GSPC1)
+rm(GSPC2)
+data_SNP500 &lt;- data.frame(date=index(GSPC), coredata(GSPC))
+colnames(data_SNP500) &lt;- c(&quot;Date&quot;, &quot;Open&quot;, &quot;High&quot;, &quot;Low&quot;, &quot;Close&quot;,&quot;Volume&quot;, &quot;Adj.Close&quot;)
+data_SNP500[data_SNP500 == 0] &lt;- 99.99
+
+data_SNP500 &lt;- data_SNP500 %&gt;% mutate(Date = ymd(Date)) 
+data_SNP500$Year = format(as.Date(data_SNP500$Date, format='%Y%m%d'),&quot;%Y&quot;) 
+data_SNP500$Month = format(as.Date(data_SNP500$Date, format='%Y%m%d'),&quot;%m&quot;) 
+data_SNP500$Day = format(as.Date(data_SNP500$Date, format='%Y%m%d'),&quot;%d&quot;) 
+data_SNP500$numday &lt;- as.numeric(format(as.Date(data_SNP500$Date), '%Y%m%d'))
+
+data_SNP500 &lt;- data_SNP500 %&gt;% select(-c(Volume))
+
+#Formula 19 from the paper (calculation of implied volatility)
+data_SNP500 &lt;- data_SNP500 %&gt;% mutate(
+  Day_Vol = (log(High/Open) * (log(High/Open) - log(Close/Open))) + 
+    (log(Low/Open) * (log(Low/Open) - log(Close/Open))))
+
+#Formula 17 for VK
+#Formula 18 for V2, V5 and V20 (calculation of daily, weekly, monthly volatilities)
+data_SNP500 &lt;- data_SNP500 %&gt;% 
+  mutate(
+    VK = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .after=20, .complete = TRUE),
+    V2 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 1, 
+                   .complete = TRUE),
+    V5 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 4, 
+                   .complete = TRUE),
+    V21 = slide_dbl(data_SNP500$Day_Vol, ~sum(.x), .before = 20, 
+                    .complete = TRUE)) 
+
+
+#HAR model for Formula 17. From this model we will get coefficients to 
+#calculate the estimation of physical second moments.
+
+#Assign the function to produce phies
+regression_summary &lt;- function(data_SNP500){
+    reg &lt;- lm(VK ~ V2+V5+V21, data=data_SNP500)
+    return(tibble(&quot;date&quot;=(data_SNP500$Date),
+                  &quot;phi0&quot;=coef(reg)[1],
+                  &quot;phi1&quot;=coef(reg)[2],
+                  &quot;phi2&quot;=coef(reg)[3],
+                  &quot;phi3&quot;=coef(reg)[4]))
+}
+
+#Execute regressions with rolling window and give me phies
+Reg_SNP500 &lt;- data_SNP500 %&gt;% 
+  summarise(model = slide_period(
+    .x = cur_data(),
+    .i = Date,
+    .period=&quot;month&quot;,
+    .f = regression_summary,
+    .before = 120,
+    .complete = TRUE
+  )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+
+#Input the phies to main dataset of SNP500 to get the estimations of Second moment
+data_SNP500 &lt;- data_SNP500 %&gt;%
+  mutate(
+    phi0 = Reg_SNP500$phi0,
+    phi1 = Reg_SNP500$phi1,
+    phi2 = Reg_SNP500$phi2,
+    phi3 = Reg_SNP500$phi3,
+    PSM = (phi0 + phi1*V2 + phi2*V5 + phi3*V21)*20) %&gt;%
+  filter(numday &lt; 20210901 &amp; numday &gt; 19860201) %&gt;%
+  group_by(Year, Month) %&gt;%
+  filter(numday == min(numday))
+
+# data_SNP500 &lt;- data_SNP500 %&gt;% mutate(
+#   PSM = slide_dbl(data_SNP500$aux_PSM, ~sum(.x), .after = 20, .complete = TRUE)) %&gt;% 
+#   filter(numday &lt; 20210901 &amp; numday &gt; 19860201) %&gt;%
+#   group_by(Year, Month) %&gt;%
+#   filter(numday == max(numday))
+#plot(data_SNP500$Date,data_SNP500$aux_PSM, type=&quot;l&quot;,
+     # xlab = &quot;&quot;, ylab = &quot;&quot;,
+     # main = &quot;Graph A. Physical Second Moment&quot;, font.main = 3)
+</code></pre>
+<pre><code class="language-{r">#The difference from previous estimators (RNSM and PSM) is our COSK price of the risk estimation of Option Implied approach
+CS_Price &lt;- tibble(
+  Date = data_SNP500$Date,
+  Price = data_SNP500$PSM - data_VIX$RNSM
+)
+</code></pre>
+<pre><code class="language-{r">#Now we are finalizing the Figure 1. for this, we save it in PDF format
+pdf(&quot;Figure 1.pdf&quot;,         # File name
+    width = 8, height = 7, # Width and height in inches
+    bg = &quot;white&quot;,          # Background color
+    colormodel = &quot;cmyk&quot;,    # Color model (cmyk is required for most publications)
+    paper = &quot;A4&quot;)
+#Connecting three plots to a single files
+par(mfrow = c(3,1))
+plot(data_SNP500$Date,data_SNP500$PSM, type=&quot;l&quot;,
+     xlab = &quot;&quot;, ylab = &quot;&quot;,
+     main = &quot;Graph A. Physical Second Moment&quot;, font.main = 3)
+plot(data_VIX$Date,data_VIX$RNSM, type=&quot;l&quot;, 
+     xlab = &quot;&quot;, ylab = &quot;&quot;,
+     main =&quot;Graph B. Risk-Neutral Second Moment&quot;, font.main = 3)
+plot(CS_Price$Date,CS_Price$Price, type = &quot;l&quot;, 
+     xlab = &quot;&quot;, ylab = &quot;&quot;,
+     main = &quot;Graph C. Price of Coskewness Risk&quot;, font.main = 3)
+dev.off() 
+</code></pre>
+<pre><code class="language-{r">library(gridExtra)
+#Calculation first-order autocorrelation with OLS and take the square root of 
+#of the R^2 from regressions.
+foc1 &lt;- lm(PSM ~ lag(PSM, n = 1L), data_SNP500)
+foc2 &lt;- lm(RNSM ~ lag(RNSM, n = 1L), data_VIX)
+foc3 &lt;- lm(Price ~ lag(Price, n = 1L), CS_Price)
+focs &lt;- c(sqrt(summary(foc1)$r.square), sqrt(summary(foc2)$r.square), 
+          sqrt(summary(foc3)$r.square))
+
+#Connecting all the data, we use also describe function that produce the
+#needed descriptive statistics, + we add the First order autocorrelation from 
+#our regressions
+Table_1 &lt;- rbind(
+  cbind(
+  t(select(describe(data_SNP500$PSM), c(&quot;mean&quot;, &quot;sd&quot;, &quot;skew&quot;, &quot;kurtosis&quot;))),
+  t(select(describe(data_VIX$RNSM), c(&quot;mean&quot;, &quot;sd&quot;, &quot;skew&quot;, &quot;kurtosis&quot;))),
+  t(select(describe(CS_Price$Price), c(&quot;mean&quot;, &quot;sd&quot;, &quot;skew&quot;, &quot;kurtosis&quot;)))
+), focs
+)
+#Changing the names of the columns and rows
+colnames(Table_1) &lt;- c(&quot;Physical Second Moment&quot;, &quot;Risk-Neutral Second Moment&quot;, 
+                       &quot;Price of Coskewness Risk&quot;)
+rownames(Table_1) &lt;- c(&quot;mean&quot;, &quot;sd&quot;, &quot;skew&quot;, &quot;kurtosis&quot;,&quot;Autocorrelation&quot;)
+
+#We save the table in pdf
+pdf(&quot;Table 1.pdf&quot;, width = 10, height = 5)
+  grid.table(round(Table_1, digits = 4))
+dev.off()
+Table_1
+
+rm(foc1)
+rm(foc2)
+rm(foc3)
+rm(focs)
+</code></pre>
+<p>#################################################################
+#####CALCULATION PRICE OF CO-SKEWNESS RISK: Regression-Based#####
+#################################################################</p>
+<pre><code class="language-{r">#To obtain the data for Fama-French models, we use the following FFdownload 
+#package and copy the code from https://sstoeckl.github.io/ffdownload/
+#We install the library
+library(FFdownload)
+#Then we process the data from the website to see, what files we can get 
+#(FFlist)
+temptxt &lt;- tempfile(fileext = &quot;.txt&quot;)
+FFdownload(exclude_daily=TRUE,download=FALSE,download_only=TRUE,
+           listsave=temptxt)
+FFlist &lt;- readr::read_csv(temptxt) %&gt;% dplyr::select(2) %&gt;% 
+  dplyr::rename(Files=x)
+FFlist %&gt;% dplyr::slice(1:3,(dplyr::n()-2):dplyr::n())
+
+#Now we specify the name of files that we actually need to download. Input 
+#vector is responsible to collect the names, so that row needs to be edited. 
+#Then it is used for the download
+tempd &lt;- tempdir()
+inputlist &lt;- c(&quot;25_Portfolios_5x5&quot;,&quot;25_Portfolios_ME_Prior_12_2&quot;,
+               &quot;25_Portfolios_ME_Prior_1_0&quot;,&quot;25_Portfolios_ME_Prior_60_13&quot;,
+               &quot;F-F_Research_Data_Factors&quot;,&quot;F-F_Momentum_Factor&quot;)
+FFdownload(exclude_daily=TRUE,tempd=tempd,download=TRUE,download_only=TRUE,
+           inputlist=inputlist)
+
+tempf &lt;- paste0(tempd,&quot;\\FFdata.RData&quot;)
+getwd()
+FFdownload(output_file = tempf, exclude_daily=TRUE,tempd=tempd,download=FALSE,
+           download_only=FALSE,inputlist = inputlist, format=&quot;tbl&quot;)
+
+library(timetk)
+load(file = tempf)
+
+#Making datasets for portfolios. We also filter data for a date frame same as 
+#for the whole research
+
+#For Size and Book-Market portfolios
+Size.Book_25 &lt;- FFdata$x_25_Portfolios_5x5$monthly$average_value_weighted_returns %&gt;% 
+  left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by=&quot;date&quot;) %&gt;%
+  left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = &quot;date&quot;)%&gt;%
+  filter(date &gt; &quot;Jan 1986&quot;) %&gt;% filter(date &lt; &quot;Sep 2021&quot;) %&gt;%
+  #addingtwo columns for market return (MKT) and COSK (square of excess return)
+  mutate(MKT = Mkt.RF+RF,
+         COSK = Mkt.RF^2)
+
+#For Size and Momentum portfolios
+Size.Momentum_25 &lt;- FFdata$x_25_Portfolios_ME_Prior_12_2$monthly$average_value_weighted_returns %&gt;% 
+  left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by=&quot;date&quot;) %&gt;%
+  left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = &quot;date&quot;)%&gt;%
+  filter(date &gt; &quot;Jan 1986&quot;) %&gt;% filter(date &lt; &quot;Sep 2021&quot;) %&gt;%
+  mutate(MKT = Mkt.RF+RF,
+         COSK = Mkt.RF^2)
+
+#For Size and Long-term reversal
+Size.LTR_25 &lt;- FFdata$x_25_Portfolios_ME_Prior_60_13$monthly$average_value_weighted_returns %&gt;% 
+  left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by=&quot;date&quot;) %&gt;%
+  left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = &quot;date&quot;)%&gt;%
+  filter(date &gt; &quot;Jan 1986&quot;) %&gt;% filter(date &lt; &quot;Sep 2021&quot;) %&gt;%
+  mutate(MKT = Mkt.RF+RF,
+         COSK = Mkt.RF^2)
+
+#For Size and Short-term reversal
+Size.STR_25 &lt;- FFdata$x_25_Portfolios_ME_Prior_1_0$monthly$average_value_weighted_returns %&gt;% 
+  left_join(FFdata$`x_F-F_Research_Data_Factors`$monthly$Temp2, by=&quot;date&quot;) %&gt;%
+  left_join(FFdata$`x_F-F_Momentum_Factor`$monthly$Temp2, by = &quot;date&quot;) %&gt;%
+  filter(date &gt; &quot;Jan 1986&quot;) %&gt;% filter(date &lt; &quot;Sep 2021&quot;) %&gt;%
+  mutate(MKT = Mkt.RF+RF,
+         COSK = Mkt.RF^2)
+
+rm(FFlist)
+rm(inputlist)
+rm(tempd)
+rm(tempf)
+rm(temptxt)
+</code></pre>
+<pre><code class="language-{r">#First stage regressions (time-series regressions with formula): 
+#R(j,t) = b0 + bn*factor
+
+#Time series regressions, where return of each portfolio is explained by Fama-French factors and 
+#Co-skewness estimator
+regression_1 &lt;- function(reg_data){
+    reg &lt;- lm(Portfolio ~ MKT, data=reg_data)
+    return(tibble(&quot;date&quot;=(reg_data$date),
+                  &quot;MKT_beta1&quot;=coef(reg)[2]))
+    }
+regression_2 &lt;- function(reg_data){
+    reg &lt;- lm(Portfolio ~ MKT + COSK, data=reg_data)
+    return(tibble(&quot;date&quot;=(reg_data),
+                  &quot;MKT_beta2&quot;=coef(reg)[2],
+                  &quot;COSK_beta2&quot;=coef(reg)[3]))
+    }
+regression_3 &lt;- function(reg_data){
+    reg &lt;- lm(Portfolio ~ MKT + HML + SMB + MOM + COSK, data=reg_data)
+    return(tibble(&quot;date&quot;=(reg_data),
+                  &quot;MKT_beta3&quot;=coef(reg)[2],
+                  &quot;HML_beta3&quot;=coef(reg)[3],
+                  &quot;SMB_beta3&quot;=coef(reg)[4],
+                  &quot;MOM_beta3&quot;=coef(reg)[5],
+                  &quot;COSK_beta3&quot;=coef(reg)[6]))
+}
+#Vectors to store betas
+SB_Sum_Reg_1 &lt;- Size.Book_25$date
+SB_Sum_Reg_2_MKT &lt;- Size.Book_25$date
+SB_Sum_Reg_2_COSK &lt;- Size.Book_25$date
+SB_Sum_Reg_3_MKT &lt;- Size.Book_25$date
+SB_Sum_Reg_3_HML &lt;- Size.Book_25$date
+SB_Sum_Reg_3_SMB &lt;- Size.Book_25$date
+SB_Sum_Reg_3_MOM &lt;- Size.Book_25$date
+SB_Sum_Reg_3_COSK &lt;- Size.Book_25$date
+#run loop to run regressions on different portfolios
+for (i in 2:26){
+  reg_data &lt;- Size.Book_25[,i]
+  reg_data &lt;- cbind(as.Date(Size.Book_25$date,format=&quot;%d-%m-%y&quot;),reg_data,Size.Book_25$MKT,Size.Book_25$HML,Size.Book_25$SMB,
+                    Size.Book_25$Mom, Size.Book_25$COSK)
+  colnames(reg_data) &lt;- c(&quot;date&quot;,&quot;Portfolio&quot;,&quot;MKT&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;MOM&quot;,&quot;COSK&quot;)
+#Run regressions with rolling window
+  Reg_1 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_1,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+#Store betas in respective vector
+  SB_Sum_Reg_1 &lt;- cbind(SB_Sum_Reg_1,Reg_1[,2])
+
+  #Same logic from above  
+  Reg_2 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_2,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SB_Sum_Reg_2_MKT &lt;- cbind(SB_Sum_Reg_2_MKT,Reg_2[,2])  
+  SB_Sum_Reg_2_COSK &lt;- cbind(SB_Sum_Reg_2_COSK,Reg_2[,3]) 
+  
+  Reg_3 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_3,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SB_Sum_Reg_3_MKT &lt;- cbind(SB_Sum_Reg_3_MKT,Reg_3[,2])
+  SB_Sum_Reg_3_HML &lt;- cbind(SB_Sum_Reg_3_HML,Reg_3[,3])
+  SB_Sum_Reg_3_SMB &lt;- cbind(SB_Sum_Reg_3_SMB,Reg_3[,4])
+  SB_Sum_Reg_3_MOM &lt;- cbind(SB_Sum_Reg_3_MOM,Reg_3[,5])
+  SB_Sum_Reg_3_COSK &lt;- cbind(SB_Sum_Reg_3_COSK,Reg_3[,6])
+}
+#data cleaning: name columns and remove periods of first 120 months window
+colnames(SB_Sum_Reg_1) &lt;- c(&quot;date&quot;,1:25)
+SB_Sum_Reg_1 &lt;- SB_Sum_Reg_1 %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SB_Sum_Reg_2_MKT) &lt;- c(&quot;date&quot;,1:25)
+SB_Sum_Reg_2_MKT &lt;- SB_Sum_Reg_2_MKT %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SB_Sum_Reg_2_COSK) &lt;- c(&quot;date&quot;,1:25)
+SB_Sum_Reg_2_COSK &lt;- SB_Sum_Reg_2_COSK %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SB_Sum_Reg_3_MKT) &lt;- c(&quot;date&quot;,1:25)
+SB_Sum_Reg_3_MKT &lt;- SB_Sum_Reg_3_MKT %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SB_Sum_Reg_3_HML) &lt;- c(&quot;date&quot;,1:25)
+SB_Sum_Reg_3_HML &lt;- SB_Sum_Reg_3_HML %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SB_Sum_Reg_3_SMB) &lt;- c(&quot;date&quot;,1:25)
+SB_Sum_Reg_3_SMB &lt;- SB_Sum_Reg_3_SMB %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SB_Sum_Reg_3_MOM) &lt;- c(&quot;date&quot;,1:25)
+SB_Sum_Reg_3_MOM &lt;- SB_Sum_Reg_3_MOM %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SB_Sum_Reg_3_COSK) &lt;- c(&quot;date&quot;,1:25)
+SB_Sum_Reg_3_COSK &lt;- SB_Sum_Reg_3_COSK %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+
+#We are repeating the same from Size.Book
+SL_Sum_Reg_1 &lt;- Size.LTR_25$date
+SL_Sum_Reg_2_MKT &lt;- Size.LTR_25$date
+SL_Sum_Reg_2_COSK &lt;- Size.LTR_25$date
+SL_Sum_Reg_3_MKT &lt;- Size.LTR_25$date
+SL_Sum_Reg_3_HML &lt;- Size.LTR_25$date
+SL_Sum_Reg_3_SMB &lt;- Size.LTR_25$date
+SL_Sum_Reg_3_MOM &lt;- Size.LTR_25$date
+SL_Sum_Reg_3_COSK &lt;- Size.LTR_25$date
+for (i in 2:26){
+  reg_data &lt;- Size.LTR_25[,i]
+  reg_data &lt;- cbind(as.Date(Size.LTR_25$date,format=&quot;%d-%m-%y&quot;),reg_data,Size.LTR_25$MKT,Size.LTR_25$HML,Size.LTR_25$SMB,
+                    Size.LTR_25$Mom, Size.LTR_25$COSK)
+  colnames(reg_data) &lt;- c(&quot;date&quot;,&quot;Portfolio&quot;,&quot;MKT&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;MOM&quot;,&quot;COSK&quot;)
+  
+  Reg_1 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_1,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SL_Sum_Reg_1 &lt;- cbind(SL_Sum_Reg_1,Reg_1[,2])
+  
+  Reg_2 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_2,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SL_Sum_Reg_2_MKT &lt;- cbind(SL_Sum_Reg_2_MKT,Reg_2[,2])  
+  SL_Sum_Reg_2_COSK &lt;- cbind(SL_Sum_Reg_2_COSK,Reg_2[,3]) 
+  
+  Reg_3 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_3,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SL_Sum_Reg_3_MKT &lt;- cbind(SL_Sum_Reg_3_MKT,Reg_3[,2])
+  SL_Sum_Reg_3_HML &lt;- cbind(SL_Sum_Reg_3_HML,Reg_3[,3])
+  SL_Sum_Reg_3_SMB &lt;- cbind(SL_Sum_Reg_3_SMB,Reg_3[,4])
+  SL_Sum_Reg_3_MOM &lt;- cbind(SL_Sum_Reg_3_MOM,Reg_3[,5])
+  SL_Sum_Reg_3_COSK &lt;- cbind(SL_Sum_Reg_3_COSK,Reg_3[,6])
+}
+colnames(SL_Sum_Reg_1) &lt;- c(&quot;date&quot;,1:25)
+SL_Sum_Reg_1 &lt;- SL_Sum_Reg_1 %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SL_Sum_Reg_2_MKT) &lt;- c(&quot;date&quot;,1:25)
+SL_Sum_Reg_2_MKT &lt;- SL_Sum_Reg_2_MKT %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SL_Sum_Reg_2_COSK) &lt;- c(&quot;date&quot;,1:25)
+SL_Sum_Reg_2_COSK &lt;- SL_Sum_Reg_2_COSK %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SL_Sum_Reg_3_MKT) &lt;- c(&quot;date&quot;,1:25)
+SL_Sum_Reg_3_MKT &lt;- SL_Sum_Reg_3_MKT %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SL_Sum_Reg_3_HML) &lt;- c(&quot;date&quot;,1:25)
+SL_Sum_Reg_3_HML &lt;- SL_Sum_Reg_3_HML %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SL_Sum_Reg_3_SMB) &lt;- c(&quot;date&quot;,1:25)
+SL_Sum_Reg_3_SMB &lt;- SL_Sum_Reg_3_SMB %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SL_Sum_Reg_3_MOM) &lt;- c(&quot;date&quot;,1:25)
+SL_Sum_Reg_3_MOM &lt;- SL_Sum_Reg_3_MOM %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SL_Sum_Reg_3_COSK) &lt;- c(&quot;date&quot;,1:25)
+SL_Sum_Reg_3_COSK &lt;- SL_Sum_Reg_3_COSK %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+
+#We are repeating the same from Size.Book
+SM_Sum_Reg_1 &lt;- Size.Momentum_25$date
+SM_Sum_Reg_2_MKT &lt;- Size.Momentum_25$date
+SM_Sum_Reg_2_COSK &lt;- Size.Momentum_25$date
+SM_Sum_Reg_3_MKT &lt;- Size.Momentum_25$date
+SM_Sum_Reg_3_HML &lt;- Size.Momentum_25$date
+SM_Sum_Reg_3_SMB &lt;- Size.Momentum_25$date
+SM_Sum_Reg_3_MOM &lt;- Size.Momentum_25$date
+SM_Sum_Reg_3_COSK &lt;- Size.Momentum_25$date
+for (i in 2:26){
+  reg_data &lt;- Size.Momentum_25[,i]
+  reg_data &lt;- cbind(as.Date(Size.Momentum_25$date,format=&quot;%d-%m-%y&quot;),reg_data,Size.Momentum_25$MKT,Size.Momentum_25$HML,Size.Momentum_25$SMB,
+                    Size.Momentum_25$Mom, Size.Momentum_25$COSK)
+  colnames(reg_data) &lt;- c(&quot;date&quot;,&quot;Portfolio&quot;,&quot;MKT&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;MOM&quot;,&quot;COSK&quot;)
+  
+  Reg_1 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_1,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SM_Sum_Reg_1 &lt;- cbind(SM_Sum_Reg_1,Reg_1[,2])
+  
+  Reg_2 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_2,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SM_Sum_Reg_2_MKT &lt;- cbind(SM_Sum_Reg_2_MKT,Reg_2[,2])  
+  SM_Sum_Reg_2_COSK &lt;- cbind(SM_Sum_Reg_2_COSK,Reg_2[,3]) 
+  
+  Reg_3 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_3,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SM_Sum_Reg_3_MKT &lt;- cbind(SM_Sum_Reg_3_MKT,Reg_3[,2])
+  SM_Sum_Reg_3_HML &lt;- cbind(SM_Sum_Reg_3_HML,Reg_3[,3])
+  SM_Sum_Reg_3_SMB &lt;- cbind(SM_Sum_Reg_3_SMB,Reg_3[,4])
+  SM_Sum_Reg_3_MOM &lt;- cbind(SM_Sum_Reg_3_MOM,Reg_3[,5])
+  SM_Sum_Reg_3_COSK &lt;- cbind(SM_Sum_Reg_3_COSK,Reg_3[,6])
+}
+colnames(SM_Sum_Reg_1) &lt;- c(&quot;date&quot;,1:25)
+SM_Sum_Reg_1 &lt;- SM_Sum_Reg_1 %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SM_Sum_Reg_2_MKT) &lt;- c(&quot;date&quot;,1:25)
+SM_Sum_Reg_2_MKT &lt;- SM_Sum_Reg_2_MKT %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SM_Sum_Reg_2_COSK) &lt;- c(&quot;date&quot;,1:25)
+SM_Sum_Reg_2_COSK &lt;- SM_Sum_Reg_2_COSK %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SM_Sum_Reg_3_MKT) &lt;- c(&quot;date&quot;,1:25)
+SM_Sum_Reg_3_MKT &lt;- SM_Sum_Reg_3_MKT %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SM_Sum_Reg_3_HML) &lt;- c(&quot;date&quot;,1:25)
+SM_Sum_Reg_3_HML &lt;- SM_Sum_Reg_3_HML %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SM_Sum_Reg_3_SMB) &lt;- c(&quot;date&quot;,1:25)
+SM_Sum_Reg_3_SMB &lt;- SM_Sum_Reg_3_SMB %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SM_Sum_Reg_3_MOM) &lt;- c(&quot;date&quot;,1:25)
+SM_Sum_Reg_3_MOM &lt;- SM_Sum_Reg_3_MOM %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SM_Sum_Reg_3_COSK) &lt;- c(&quot;date&quot;,1:25)
+SM_Sum_Reg_3_COSK &lt;- SM_Sum_Reg_3_COSK %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+
+#We are repeating the same from Size.Book
+SS_Sum_Reg_1 &lt;- Size.STR_25$date
+SS_Sum_Reg_2_MKT &lt;- Size.STR_25$date
+SS_Sum_Reg_2_COSK &lt;- Size.STR_25$date
+SS_Sum_Reg_3_MKT &lt;- Size.STR_25$date
+SS_Sum_Reg_3_HML &lt;- Size.STR_25$date
+SS_Sum_Reg_3_SMB &lt;- Size.STR_25$date
+SS_Sum_Reg_3_MOM &lt;- Size.STR_25$date
+SS_Sum_Reg_3_COSK &lt;- Size.STR_25$date
+for (i in 2:26){
+  reg_data &lt;- Size.STR_25[,i]
+  reg_data &lt;- cbind(as.Date(Size.STR_25$date,format=&quot;%d-%m-%y&quot;),reg_data,Size.STR_25$MKT,Size.STR_25$HML,Size.STR_25$SMB,
+                    Size.STR_25$Mom, Size.STR_25$COSK)
+  colnames(reg_data) &lt;- c(&quot;date&quot;,&quot;Portfolio&quot;,&quot;MKT&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;MOM&quot;,&quot;COSK&quot;)
+  
+  Reg_1 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_1,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SS_Sum_Reg_1 &lt;- cbind(SS_Sum_Reg_1,Reg_1[,2])
+  
+  Reg_2 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_2,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SS_Sum_Reg_2_MKT &lt;- cbind(SS_Sum_Reg_2_MKT,Reg_2[,2])  
+  SS_Sum_Reg_2_COSK &lt;- cbind(SS_Sum_Reg_2_COSK,Reg_2[,3])  
+  
+  Reg_3 &lt;- reg_data %&gt;% 
+    dplyr::summarise(model = slide_period(
+      .x = cur_data(),
+      .i = date,
+      .period=&quot;month&quot;,
+      .f = regression_3,
+      .before = 120,
+      .complete = TRUE
+    )) %&gt;% unnest(model) %&gt;% distinct(date, .keep_all = TRUE)
+  SS_Sum_Reg_3_MKT &lt;- cbind(SS_Sum_Reg_3_MKT,Reg_3[,2])
+  SS_Sum_Reg_3_HML &lt;- cbind(SS_Sum_Reg_3_HML,Reg_3[,3])
+  SS_Sum_Reg_3_SMB &lt;- cbind(SS_Sum_Reg_3_SMB,Reg_3[,4])
+  SS_Sum_Reg_3_MOM &lt;- cbind(SS_Sum_Reg_3_MOM,Reg_3[,5])
+  SS_Sum_Reg_3_COSK &lt;- cbind(SS_Sum_Reg_3_COSK,Reg_3[,6])
+}
+colnames(SS_Sum_Reg_1) &lt;- c(&quot;date&quot;,1:25)
+SS_Sum_Reg_1 &lt;- SS_Sum_Reg_1 %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SS_Sum_Reg_2_MKT) &lt;- c(&quot;date&quot;,1:25)
+SS_Sum_Reg_2_MKT &lt;- SS_Sum_Reg_2_MKT %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SS_Sum_Reg_2_COSK) &lt;- c(&quot;date&quot;,1:25)
+SS_Sum_Reg_2_COSK &lt;- SS_Sum_Reg_2_COSK %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SS_Sum_Reg_3_MKT) &lt;- c(&quot;date&quot;,1:25)
+SS_Sum_Reg_3_MKT &lt;- SS_Sum_Reg_3_MKT %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SS_Sum_Reg_3_HML) &lt;- c(&quot;date&quot;,1:25)
+SS_Sum_Reg_3_HML &lt;- SS_Sum_Reg_3_HML %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SS_Sum_Reg_3_SMB) &lt;- c(&quot;date&quot;,1:25)
+SS_Sum_Reg_3_SMB &lt;- SS_Sum_Reg_3_SMB %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SS_Sum_Reg_3_MOM) &lt;- c(&quot;date&quot;,1:25)
+SS_Sum_Reg_3_MOM &lt;- SS_Sum_Reg_3_MOM %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+colnames(SS_Sum_Reg_3_COSK) &lt;- c(&quot;date&quot;,1:25)
+SS_Sum_Reg_3_COSK &lt;- SS_Sum_Reg_3_COSK %&gt;% filter(date &gt; &quot;Jan 1996&quot;)
+</code></pre>
+<pre><code class="language-{r">#Adjust data from regressions 1
+inter1&lt;-matrix(NA,5,306)
+inter2&lt;-matrix(NA,5,306)
+inter3&lt;-matrix(NA,5,306)
+inter4&lt;-matrix(NA,5,306)
+for (i in (1:306)) {
+  #Returns vector
+  aux_reg_data1 &lt;- Size.Book_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  #Betas vector
+  aux_reg_data2 &lt;- SB_Sum_Reg_1[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
+  
+#V1 - Return of portfolio
+# V2 - MKT
+# V3 - HML
+# V4 - SMB
+# V5 - MOM  
+# V6 - COSK
+  reg &lt;- lm(V1 ~ V2,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter1[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3) #lambdas from Intercept
+  inter1[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3) #t-values of prev. lambda
+  inter1[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3) #lambdas from MKT
+  inter1[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3) #t-values of prev. lambda
+  inter1[5,i] &lt;- format(as.numeric(summary(reg)$adj.r.square)) #adj.r.square
+  
+  aux_reg_data1 &lt;- Size.LTR_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SL_Sum_Reg_1[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
+  
+  reg &lt;- lm(V1 ~ V2,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter2[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2[5,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))  
+  
+  aux_reg_data1 &lt;- Size.Momentum_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SM_Sum_Reg_1[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
+  
+  reg &lt;- lm(V1 ~ V2,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter3[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3[5,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+  
+  aux_reg_data1 &lt;- Size.STR_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SS_Sum_Reg_1[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)]))
+  
+  reg &lt;- lm(V1 ~ V2,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter4[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter4[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter4[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter4[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter4[5,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+}
+</code></pre>
+<pre><code class="language-{r">inter2_1&lt;-matrix(NA,7,306)
+inter2_2&lt;-matrix(NA,7,306)
+inter2_3&lt;-matrix(NA,7,306)
+inter2_4&lt;-matrix(NA,7,306)
+i=1
+for (i in (1:306)) {
+  aux_reg_data1 &lt;- Size.Book_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SB_Sum_Reg_2_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  aux_reg_data6 &lt;- SB_Sum_Reg_2_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+  aux_reg_data6 &lt;- as.data.frame(t(aux_reg_data6))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data6[,i]))
+  
+  reg &lt;- lm(V1 ~ V2 + V3,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter2_1[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2_1[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2_1[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2_1[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2_1[5,i] &lt;- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter2_1[6,i] &lt;- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter2_1[7,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+  
+  
+  aux_reg_data1 &lt;- Size.LTR_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SL_Sum_Reg_2_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  aux_reg_data6 &lt;- SL_Sum_Reg_2_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+  aux_reg_data6 &lt;- as.data.frame(t(aux_reg_data6))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data6[,i]))
+  
+  reg &lt;- lm(V1 ~ V2 + V3,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter2_2[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2_2[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2_2[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2_2[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2_2[5,i] &lt;- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter2_2[6,i] &lt;- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter2_2[7,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+  
+  
+  aux_reg_data1 &lt;- Size.Momentum_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SM_Sum_Reg_2_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  aux_reg_data6 &lt;- SM_Sum_Reg_2_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+  aux_reg_data6 &lt;- as.data.frame(t(aux_reg_data6))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data6[,i]))
+  
+  reg &lt;- lm(V1 ~ V2 + V3,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter2_3[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2_3[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2_3[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2_3[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2_3[5,i] &lt;- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter2_3[6,i] &lt;- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter2_3[7,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+  
+  
+  aux_reg_data1 &lt;- Size.STR_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SS_Sum_Reg_2_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  aux_reg_data6 &lt;- SS_Sum_Reg_2_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+  aux_reg_data6 &lt;- as.data.frame(t(aux_reg_data6))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data6[,i]))
+  
+  reg &lt;- lm(V1 ~ V2 + V3,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter2_4[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter2_4[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter2_4[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter2_4[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter2_4[5,i] &lt;- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter2_4[6,i] &lt;- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter2_4[7,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+}
+</code></pre>
+<pre><code class="language-{r">inter3_1&lt;-matrix(NA,13,306)
+inter3_2&lt;-matrix(NA,13,306)
+inter3_3&lt;-matrix(NA,13,306)
+inter3_4&lt;-matrix(NA,13,306)
+i=1
+for (i in (1:306)) {
+  aux_reg_data1 &lt;- Size.Book_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SB_Sum_Reg_3_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  aux_reg_data3 &lt;- SB_Sum_Reg_3_HML[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data3 &lt;- as.data.frame(t(aux_reg_data3))
+  aux_reg_data4 &lt;- SB_Sum_Reg_3_SMB[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data4 &lt;- as.data.frame(t(aux_reg_data4))
+  aux_reg_data5 &lt;- SB_Sum_Reg_3_MOM[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data5 &lt;- as.data.frame(t(aux_reg_data5))  
+  aux_reg_data6 &lt;- SB_Sum_Reg_3_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+  aux_reg_data6 &lt;- as.data.frame(t(aux_reg_data6))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data3[,i],aux_reg_data4[,(i)],
+                                      aux_reg_data5[,i],aux_reg_data6[,(i)]))
+  
+  reg &lt;- lm(V1 ~ V2 + V3 + V4 + V5 + V6,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter3_1[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3_1[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3_1[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3_1[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3_1[5,i] &lt;- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter3_1[6,i] &lt;- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter3_1[7,i] &lt;- format(as.numeric(Result_i[4,2]), scientific=FALSE, digits = 3)
+  inter3_1[8,i] &lt;- format(as.numeric(Result_i[4,4]), scientific=FALSE, digits = 3)
+  inter3_1[9,i] &lt;- format(as.numeric(Result_i[5,2]), scientific=FALSE, digits = 3)
+  inter3_1[10,i] &lt;- format(as.numeric(Result_i[5,4]), scientific=FALSE, digits = 3)
+  inter3_1[11,i] &lt;- format(as.numeric(Result_i[6,2]), scientific=FALSE, digits = 3)
+  inter3_1[12,i] &lt;- format(as.numeric(Result_i[6,4]), scientific=FALSE, digits = 3)
+  inter3_1[13,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+
+
+  aux_reg_data1 &lt;- Size.LTR_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SL_Sum_Reg_3_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  aux_reg_data3 &lt;- SL_Sum_Reg_3_HML[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data3 &lt;- as.data.frame(t(aux_reg_data3))
+  aux_reg_data4 &lt;- SL_Sum_Reg_3_SMB[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data4 &lt;- as.data.frame(t(aux_reg_data4))
+  aux_reg_data5 &lt;- SL_Sum_Reg_3_MOM[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data5 &lt;- as.data.frame(t(aux_reg_data5))  
+  aux_reg_data6 &lt;- SL_Sum_Reg_3_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+  aux_reg_data6 &lt;- as.data.frame(t(aux_reg_data6))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data3[,i],aux_reg_data4[,(i)],
+                                      aux_reg_data5[,i],aux_reg_data6[,(i)]))
+  
+  reg &lt;- lm(V1 ~ V2 + V3 + V4 + V5 + V6,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter3_2[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3_2[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3_2[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3_2[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3_2[5,i] &lt;- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter3_2[6,i] &lt;- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter3_2[7,i] &lt;- format(as.numeric(Result_i[4,2]), scientific=FALSE, digits = 3)
+  inter3_2[8,i] &lt;- format(as.numeric(Result_i[4,4]), scientific=FALSE, digits = 3)
+  inter3_2[9,i] &lt;- format(as.numeric(Result_i[5,2]), scientific=FALSE, digits = 3)
+  inter3_2[10,i] &lt;- format(as.numeric(Result_i[5,4]), scientific=FALSE, digits = 3)
+  inter3_2[11,i] &lt;- format(as.numeric(Result_i[6,2]), scientific=FALSE, digits = 3)
+  inter3_2[12,i] &lt;- format(as.numeric(Result_i[6,4]), scientific=FALSE, digits = 3)
+  inter3_2[13,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+  
+  
+  aux_reg_data1 &lt;- Size.Momentum_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SM_Sum_Reg_3_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  aux_reg_data3 &lt;- SM_Sum_Reg_3_HML[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data3 &lt;- as.data.frame(t(aux_reg_data3))
+  aux_reg_data4 &lt;- SM_Sum_Reg_3_SMB[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data4 &lt;- as.data.frame(t(aux_reg_data4))
+  aux_reg_data5 &lt;- SM_Sum_Reg_3_MOM[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data5 &lt;- as.data.frame(t(aux_reg_data5))  
+  aux_reg_data6 &lt;- SM_Sum_Reg_3_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+  aux_reg_data6 &lt;- as.data.frame(t(aux_reg_data6))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data3[,i],aux_reg_data4[,(i)],
+                                      aux_reg_data5[,i],aux_reg_data6[,(i)]))
+  
+  reg &lt;- lm(V1 ~ V2 + V3 + V4 + V5 + V6,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter3_3[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3_3[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3_3[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3_3[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3_3[5,i] &lt;- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter3_3[6,i] &lt;- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter3_3[7,i] &lt;- format(as.numeric(Result_i[4,2]), scientific=FALSE, digits = 3)
+  inter3_3[8,i] &lt;- format(as.numeric(Result_i[4,4]), scientific=FALSE, digits = 3)
+  inter3_3[9,i] &lt;- format(as.numeric(Result_i[5,2]), scientific=FALSE, digits = 3)
+  inter3_3[10,i] &lt;- format(as.numeric(Result_i[5,4]), scientific=FALSE, digits = 3)
+  inter3_3[11,i] &lt;- format(as.numeric(Result_i[6,2]), scientific=FALSE, digits = 3)
+  inter3_3[12,i] &lt;- format(as.numeric(Result_i[6,4]), scientific=FALSE, digits = 3)
+  inter3_3[13,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))  
+  
+  
+  aux_reg_data1 &lt;- Size.STR_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+  aux_reg_data1 &lt;- as.data.frame(t(aux_reg_data1))
+  aux_reg_data2 &lt;- SS_Sum_Reg_3_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data2 &lt;- as.data.frame(t(aux_reg_data2))
+  aux_reg_data3 &lt;- SS_Sum_Reg_3_HML[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data3 &lt;- as.data.frame(t(aux_reg_data3))
+  aux_reg_data4 &lt;- SS_Sum_Reg_3_SMB[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data4 &lt;- as.data.frame(t(aux_reg_data4))
+  aux_reg_data5 &lt;- SS_Sum_Reg_3_MOM[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+  aux_reg_data5 &lt;- as.data.frame(t(aux_reg_data5))  
+  aux_reg_data6 &lt;- SS_Sum_Reg_3_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+  aux_reg_data6 &lt;- as.data.frame(t(aux_reg_data6))
+  fin_reg_data &lt;- as.data.frame(cbind(aux_reg_data1[,i],aux_reg_data2[,(i)],
+                                      aux_reg_data3[,i],aux_reg_data4[,(i)],
+                                      aux_reg_data5[,i],aux_reg_data6[,(i)]))
+  
+  reg &lt;- lm(V1 ~ V2 + V3 + V4 + V5 + V6,data = fin_reg_data)
+  Result_i &lt;- as.data.frame(tidy(reg))
+  inter3_4[1,i] &lt;- format(as.numeric(Result_i[1,2]), scientific=FALSE, digits = 3)
+  inter3_4[2,i] &lt;- format(as.numeric(Result_i[1,4]), scientific=FALSE, digits = 3)
+  inter3_4[3,i] &lt;- format(as.numeric(Result_i[2,2]), scientific=FALSE, digits = 3)
+  inter3_4[4,i] &lt;- format(as.numeric(Result_i[2,4]), scientific=FALSE, digits = 3)
+  inter3_4[5,i] &lt;- format(as.numeric(Result_i[3,2]), scientific=FALSE, digits = 3)
+  inter3_4[6,i] &lt;- format(as.numeric(Result_i[3,4]), scientific=FALSE, digits = 3)
+  inter3_4[7,i] &lt;- format(as.numeric(Result_i[4,2]), scientific=FALSE, digits = 3)
+  inter3_4[8,i] &lt;- format(as.numeric(Result_i[4,4]), scientific=FALSE, digits = 3)
+  inter3_4[9,i] &lt;- format(as.numeric(Result_i[5,2]), scientific=FALSE, digits = 3)
+  inter3_4[10,i] &lt;- format(as.numeric(Result_i[5,4]), scientific=FALSE, digits = 3)
+  inter3_4[11,i] &lt;- format(as.numeric(Result_i[6,2]), scientific=FALSE, digits = 3)
+  inter3_4[12,i] &lt;- format(as.numeric(Result_i[6,4]), scientific=FALSE, digits = 3)
+  inter3_4[13,i] &lt;- format(as.numeric(summary(reg)$adj.r.square))
+}
+</code></pre>
+<pre><code class="language-{r">beta_0 &lt;- as.numeric(c(mean(as.numeric(inter1[1,])),mean(as.numeric(inter2_1[1,])),mean(as.numeric(inter3_1[1,])),
+            mean(as.numeric(inter3[1,])),mean(as.numeric(inter2_3[1,])),mean(as.numeric(inter3_3[1,])),
+            mean(as.numeric(inter4[1,])),mean(as.numeric(inter2_4[1,])),mean(as.numeric(inter3_4[1,])),
+            mean(as.numeric(inter2[1,])),mean(as.numeric(inter2_2[1,])),mean(as.numeric(inter3_2[1,]))))
+beta_0
+
+t_val_b0 &lt;- as.numeric(c(mean(as.numeric(inter1[2,])),mean(as.numeric(inter2_1[2,])),mean(as.numeric(inter3_1[2,])),
+              mean(as.numeric(inter3[2,])),mean(as.numeric(inter2_3[2,])),mean(as.numeric(inter3_3[2,])),
+              mean(as.numeric(inter4[2,])),mean(as.numeric(inter2_4[2,])),mean(as.numeric(inter3_4[2,])),
+              mean(as.numeric(inter2[2,])),mean(as.numeric(inter2_2[2,])),mean(as.numeric(inter3_2[2,]))))
+t_val_b0
+
+b_MKT &lt;-  as.numeric(c(mean(as.numeric(inter1[3,])),mean(as.numeric(inter2_1[3,])),mean(as.numeric(inter3_1[3,])),
+            mean(as.numeric(inter3[3,])),mean(as.numeric(inter2_3[3,])),mean(as.numeric(inter3_3[3,])),
+            mean(as.numeric(inter4[3,])),mean(as.numeric(inter2_4[3,])),mean(as.numeric(inter3_4[3,])),
+            mean(as.numeric(inter2[3,])),mean(as.numeric(inter2_2[3,])),mean(as.numeric(inter3_2[3,]))))
+b_MKT
+
+t_val_b1 &lt;- as.numeric(c(mean(as.numeric(inter1[4,])),mean(as.numeric(inter2_1[4,])),mean(as.numeric(inter3_1[4,])),
+              mean(as.numeric(inter3[4,])),mean(as.numeric(inter2_3[4,])),mean(as.numeric(inter3_3[4,])),
+              mean(as.numeric(inter4[4,])),mean(as.numeric(inter2_4[4,])),mean(as.numeric(inter3_4[4,])),
+              mean(as.numeric(inter2[4,])),mean(as.numeric(inter2_2[4,])),mean(as.numeric(inter3_2[4,]))))
+t_val_b1
+
+b_HML &lt;- as.numeric(c(&quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_1[5,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_3[5,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_4[5,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_2[5,]))))
+b_HML
+
+t_val_b2 &lt;- as.numeric(c(&quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_1[6,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_3[6,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_4[6,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_2[6,]))))
+t_val_b2
+
+b_SMB &lt;- as.numeric(c(&quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_1[7,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_3[7,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_4[7,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_2[7,]))))
+b_SMB
+
+t_val_b3 &lt;- as.numeric(c(&quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_1[8,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_3[8,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_4[8,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_2[8,]))))
+t_val_b3
+
+b_MOM &lt;- as.numeric(c(&quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_1[9,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_3[9,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_4[9,])),
+           &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_2[9,]))))
+b_MOM
+
+t_val_b4 &lt;- as.numeric(c(&quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_1[10,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_3[10,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_4[10,])),
+              &quot; &quot;,&quot; &quot;,mean(as.numeric(inter3_2[10,]))))
+t_val_b4
+
+b_COSK &lt;- as.numeric(c(&quot; &quot;,mean(as.numeric(inter2_1[5,])),mean(as.numeric(inter3_1[11,])),
+            &quot; &quot;,mean(as.numeric(inter2_3[5,])),mean(as.numeric(inter3_3[11,])),
+            &quot; &quot;,mean(as.numeric(inter2_4[5,])),mean(as.numeric(inter3_4[11,])),
+            &quot; &quot;,mean(as.numeric(inter2_2[5,])),mean(as.numeric(inter3_2[11,]))))
+b_COSK
+
+t_val_b5 &lt;- as.numeric(c(&quot; &quot;,mean(as.numeric(inter2_1[6,])),mean(as.numeric(inter3_1[12,])),
+              &quot; &quot;,mean(as.numeric(inter2_3[6,])),mean(as.numeric(inter3_3[12,])),
+              &quot; &quot;,mean(as.numeric(inter2_4[6,])),mean(as.numeric(inter3_4[12,])),
+              &quot; &quot;,mean(as.numeric(inter2_2[6,])),mean(as.numeric(inter3_2[12,]))))
+t_val_b5
+
+adj.R.aq &lt;- as.numeric(c(mean(as.numeric(inter1[5,])),mean(as.numeric(inter2_1[7,])),mean(as.numeric(inter3_1[13,])),
+            mean(as.numeric(inter3[5,])),mean(as.numeric(inter2_3[7,])),mean(as.numeric(inter3_3[13,])),
+            mean(as.numeric(inter4[5,])),mean(as.numeric(inter2_4[7,])),mean(as.numeric(inter3_4[13,])),
+            mean(as.numeric(inter2[5,])),mean(as.numeric(inter2_2[7,])),mean(as.numeric(inter3_2[13,]))))
+
+Table_2 &lt;- rbind(beta_0, b_MKT, b_HML,
+                 b_SMB, b_MOM, b_COSK, adj.R.aq)
+Table_2 &lt;- round(Table_2, digits = 3)
+Table_2 &lt;- replace(Table_2, is.na(Table_2), &quot;&quot;)
+rownames(Table_2) &lt;- c(&quot;l_0&quot;,&quot;l_MKT&quot;,&quot;l_HML&quot;,&quot;l_SMB&quot;,&quot;l_MOM&quot;,&quot;l_COSK&quot;,&quot;Adj.R.sq&quot;)
+colnames(Table_2) &lt;- c(&quot;Size-to-Book 1&quot;,&quot;Size-to-Book 2&quot;,&quot;Size-to-Book 3&quot;,&quot;Size-to-Momentum 1&quot;,&quot;Size-to-Momentum 2&quot;,&quot;Size-to-Momentum 3&quot;,
+                       &quot;Size-to-STR 1&quot;, &quot;Size-to-STR 2&quot;, &quot;Size-to-STR 3&quot;, &quot;Size-to-LTR 1&quot;,  &quot;Size-to-STR 2&quot;, &quot;Size-to-STR 3&quot;)
+# Table_2 &lt;- rbind(beta_0, t_val_b0, b_MKT, t_val_b1, b_HML,
+#                  t_val_b2, b_SMB, t_val_b3, b_MOM, t_val_b4,
+#                  b_COSK, t_val_b5, adj.R.aq)
+# Table_2 &lt;- round(Table_2, digits = 3)
+# Table_2 &lt;- replace(Table_2, is.na(Table_2), &quot;&quot;)
+# rownames(Table_2) &lt;- c(&quot;l_0&quot;,&quot;&quot;,&quot;l_MKT&quot;,&quot;&quot;,&quot;l_HML&quot;,&quot;&quot;,&quot;l_SMB&quot;,&quot;&quot;,&quot;l_MOM&quot;,&quot;&quot;,&quot;l_COSK&quot;,&quot;&quot;,&quot;Adj.R.sq&quot;)
+# colnames(Table_2) &lt;- c(&quot;Size-to-Book 1&quot;,&quot;Size-to-Book 2&quot;,&quot;Size-to-Book 3&quot;,&quot;Size-to-Momentum 1&quot;,&quot;Size-to-Momentum 2&quot;,&quot;Size-to-Momentum 3&quot;,
+#                        &quot;Size-to-STR 1&quot;, &quot;Size-to-STR 2&quot;, &quot;Size-to-STR 3&quot;, &quot;Size-to-LTR 1&quot;,  &quot;Size-to-STR 2&quot;, &quot;Size-to-STR 3&quot;)
+
+</code></pre>
+<pre><code class="language-{r">pdf(&quot;Table 2.pdf&quot;, width = 20, height = 5)
+  grid.table(Table_2)
+dev.off()
+write.csv(Table_2, file = &quot;Table2.csv&quot;)
+Table_2
+</code></pre>
+<pre><code class="language-{r">#We calculate the difference 
+#Initiate empty vectors
+err_OI &lt;- as.data.frame(NA)
+err_RB &lt;- as.data.frame(NA)
+#Apply estimators from option based (OI) and regression based (RB) COSK and MKT from regressions
+COSK_oest &lt;- Table_1[1,3]*100
+COSK_rest &lt;- as.numeric(Table_2[6,2])
+MKT_rest &lt;- as.numeric(Table_2[2,2])
+#i=1
+
+#Calculation of residuals and making a matrix with them squared
+aux_R &lt;- Size.Book_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+aux_b_MKT &lt;- SB_Sum_Reg_2_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+aux_b_COSK &lt;- SB_Sum_Reg_2_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+#Squaring residuals
+err_OI &lt;- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+err_RB &lt;- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+
+#Estimating cross sectional mean square error (Formula 24)
+aux_err &lt;- err_RB - err_OI
+SUM &lt;- c()
+for (i in (1:306)) {
+  SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
+}
+aux_err &lt;- cbind(aux_err,SUM)
+#Getting MSE with formula 23
+MSE_SB &lt;- sum(aux_err$SUM)/306
+#Same procedure in next MSEs
+</code></pre>
+<pre><code class="language-{r">#We calculate the difference 
+#Initiate empty vectors
+err_OI &lt;- as.data.frame(NA)
+err_RB &lt;- as.data.frame(NA)
+#Apply estimators from option based (OI) and regression based (RB) COSK and MKT from regressions
+COSK_oest &lt;- Table_1[1,3]*100
+COSK_rest &lt;- as.numeric(Table_2[6,2])
+MKT_rest &lt;- as.numeric(Table_2[2,2])
+#i=1
+
+#Calculation of residuals and making a matrix with them squared
+aux_R &lt;- Size.Momentum_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+aux_b_MKT &lt;- SM_Sum_Reg_2_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+aux_b_COSK &lt;- SM_Sum_Reg_2_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+#Squaring residuals
+err_OI &lt;- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+err_RB &lt;- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+
+#Estimating cross sectional mean square error (Formula 24)
+aux_err &lt;- err_OI - err_RB
+SUM &lt;- c()
+for (i in (1:306)) {
+  SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
+}
+aux_err &lt;- cbind(aux_err,SUM)
+#Getting MSE with formula 23
+MSE_SM &lt;- sum(aux_err$SUM)/306
+#Same procedure in next MSEs
+</code></pre>
+<pre><code class="language-{r">#We calculate the difference 
+#Initiate empty vectors
+err_OI &lt;- as.data.frame(NA)
+err_RB &lt;- as.data.frame(NA)
+#Apply estimators from option based (OI) and regression based (RB) COSK and MKT from regressions
+COSK_oest &lt;- Table_1[1,3]*100
+COSK_rest &lt;- as.numeric(Table_2[6,2])
+MKT_rest &lt;- as.numeric(Table_2[2,2])
+#i=1
+
+#Calculation of residuals and making a matrix with them squared
+aux_R &lt;- Size.STR_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+aux_b_MKT &lt;- SS_Sum_Reg_2_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+aux_b_COSK &lt;- SS_Sum_Reg_2_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+#Squaring residuals
+err_OI &lt;- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+err_RB &lt;- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+
+#Estimating cross sectional mean square error (Formula 24)
+aux_err &lt;- err_OI - err_RB
+SUM &lt;- c()
+for (i in (1:306)) {
+  SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
+}
+aux_err &lt;- cbind(aux_err,SUM)
+#Getting MSE with formula 23
+MSE_SS &lt;- sum(aux_err$SUM)/306
+#Same procedure in next MSEs
+</code></pre>
+<pre><code class="language-{r">#We calculate the difference 
+#Initiate empty vectors
+err_OI &lt;- as.data.frame(NA)
+err_RB &lt;- as.data.frame(NA)
+#Apply estimators from option based (OI) and regression based (RB) COSK and MKT from regressions
+COSK_oest &lt;- Table_1[1,3]*100
+COSK_rest &lt;- as.numeric(Table_2[6,2])
+MKT_rest &lt;- as.numeric(Table_2[2,2])
+#i=1
+
+#Calculation of residuals and making a matrix with them squared
+aux_R &lt;- Size.LTR_25[(122:427),] %&gt;% select(-c(&quot;date&quot;,&quot;Mkt.RF&quot;,&quot;HML&quot;,&quot;SMB&quot;,&quot;Mom&quot;,&quot;RF&quot;,&quot;COSK&quot;,&quot;MKT&quot;))
+aux_b_MKT &lt;- SL_Sum_Reg_2_MKT[1:306,] %&gt;% select(-c(&quot;date&quot;)) 
+aux_b_COSK &lt;- SL_Sum_Reg_2_COSK[1:306,] %&gt;% select(-c(&quot;date&quot;))
+#Squaring residuals
+err_OI &lt;- (aux_R - COSK_oest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+err_RB &lt;- (aux_R - COSK_rest * aux_b_COSK - MKT_rest * aux_b_MKT)^2
+
+#Estimating cross sectional mean square error (Formula 24)
+aux_err &lt;- err_RB - err_OI
+SUM &lt;- c()
+for (i in (1:306)) {
+  SUM[i] = (sum(aux_err[i,(1:25)]))/25*12*100
+}
+aux_err &lt;- cbind(aux_err,SUM)
+#Getting MSE with formula 23
+MSE_SL &lt;- sum(aux_err$SUM)/306
+#Same procedure in next MSEs
+</code></pre>
+<pre><code class="language-{r">Table_3 &lt;- cbind(MSE_SB,MSE_SM,MSE_SS,MSE_SL)
+pdf(&quot;Table 3.pdf&quot;, width = 10, height = 5)
+  grid.table(Table_3)
+dev.off()
+Table_3
+</code></pre>
+<pre><code class="language-{r">require(knitr) # required for knitting from rmd to md
+require(markdown) # required for md to html 
+
+markdownToHTML('corecode.Rmd', 'code_for_presentation.html')
+</code></pre>
+<!-- ################################################################################ -->
+<!-- JUNK -->
+<!-- ################################################################################ -->
+<!-- #HAR model for Formula 17. From this model we will get coefficients to calculate the estimation of physical second moments. -->
+<!-- regression_summary <- function(df){ -->
+<!--     reg <- lm(VK ~ V2+V4+V20, data=df) -->
+<!--     return(tibble(date=Date, -->
+<!--       "phi0"=coef(reg)[1], -->
+<!--                   "phi1"=coef(reg)[2], -->
+<!--                   "phi2"=coef(reg)[3], -->
+<!--                   "phi3"=coef(reg)[4])) -->
+<!-- } -->
+<!-- FANG_ret2 %>% -->
+<!--   summarise(model = slide_period( -->
+<!--     .x = cur_data(), -->
+<!--     .i = date, -->
+<!--     .period="month", -->
+<!--     .f = regression_summary, -->
+<!--     .before = 1, -->
+<!--     .complete = FALSE -->
+<!--   )) %>% unnest(model)  -->
+<!-- table <- slide_period(data_SNP500,data_SNP500$Date,.period = "year",identity,.every = 10, .before = 9) -->
+<!-- ################################################################ -->
+<!-- #I AM NOW HERE, trying to implement recursive regression -->
+<!-- ```{r Example for HAR model} -->
+<!-- # Example 1: HAR -->
+<!-- # Forecasting daily Realized volatility for the S&P 500 using the basic HARmodel: HAR -->
+<!-- library(xts) -->
+<!-- RVSPY <- as.xts(SPYRM$RV5, order.by = SPYRM$DT) -->
+<!-- x <- HARmodel(data = RVSPY , periods = c(1,5,22), RVest = c("rCov"), -->
+<!--               type = "HAR", h = 1, transform = NULL, inputType = "RM") -->
+<!-- class(x) -->
+<!-- x -->
+<!-- summary(x) -->
+<!-- plot(x) -->
+<!-- predict(x) -->
+<!-- ``` -->
+<!-- ```{r JUNK} -->
+<!-- #JUNK -->
+<!-- library(psych) -->
+<!-- table1_data<-describe(data_VIX$Square) -->
+<!-- plot(data_VIX$Date,data_VIX$Square, type="l") -->
+<!-- table1.2_data<-describe(data_VIX$SqPrice) -->
+<!-- plot(data_VIX$Date,data_VIX$SqPrice, type="l") -->
+<!-- table2.1<-describe(data_SNP500$PSM) -->
+<!-- plot(data_SNP500$Date,data_SNP500$PSM, type="l") -->
+<!-- n <- 15 -->
+<!-- x <- rnorm(n) -->
+<!-- weights <- 0.9 ^ (n:1) -->
+<!-- # rolling sums with complete windows -->
+<!-- roll_sum(x, 5) -->
+<!-- x -->
+<!-- #Getting data for HAR model: filtering until 1996 (10 year window) -->
+<!-- win_120 <- data_SNP500 %>% filter(numday <=19960203) -->
+<!-- which(data_SNP500 = (head(data_SNP500$numday,1)+100000), arr.ind = TRUE) -->
+<!-- a1 -->
+<!-- HAR_data <- as.xts(win_120$Day_Vol, order.by = win_120$Date) -->
+<!-- x <- HARmodel(data = HAR_data , periods = c(1,4,20), RVest = c("rCov"), type = "HAR", h = 1, transform = NULL, inputType = "RM") -->
+<!-- summary(x) -->
+<!-- #calculating volatilities based on estimates from HAR model: formula 17 -->
+<!-- coefs <- coefficients(x) -->
+<!-- #This How I want this to look like -->
+<!-- data_SNP500 <- data_SNP500 %>% mutate(estimated_volatility = coefs[1] + coefs[2]*rollsum(Day_Vol,1) + coefs[3]*Wek_Vol + coefs[4]*Mon_Vol) -->
+<!-- rolling_lms <- lapply(seq(20,nrow(df) ), function(x) lm( Y ~ X1+X2, data = df[1:x , ]) ) -->
+<!-- table_RNSM<-describe(data_VIX$RNSM) -->
+<!-- plot(data_VIX$Date,data_VIX$RNSM, type="l") -->
+<!-- table_PSM<-describe(data_SNP500$PSM) -->
+<!-- plot(data_SNP500$Date,data_SNP500$PSM, type="l") -->
+<!-- table_CSP<-describe(CS_Price$Price) -->
+<!-- plot(CS_Price$Date,CS_Price$Price, type = "l") -->
+<!-- ``` -->
+
+</body>
+
+</html>

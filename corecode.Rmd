@@ -114,13 +114,19 @@ data_SNP500 <- data_SNP500 %>%
     phi1 = Reg_SNP500$phi1,
     phi2 = Reg_SNP500$phi2,
     phi3 = Reg_SNP500$phi3,
-    aux_PSM = phi0 + phi1*V2 + phi2*V5 + phi3*V21) 
-
-data_SNP500 <- data_SNP500 %>% mutate(
-  PSM = slide_dbl(data_SNP500$aux_PSM, ~sum(.x), .after = 20, .complete = TRUE)) %>% 
+    PSM = (phi0 + phi1*V2 + phi2*V5 + phi3*V21)*20) %>%
   filter(numday < 20210901 & numday > 19860201) %>%
   group_by(Year, Month) %>%
-  filter(numday == max(numday))
+  filter(numday == min(numday))
+
+# data_SNP500 <- data_SNP500 %>% mutate(
+#   PSM = slide_dbl(data_SNP500$aux_PSM, ~sum(.x), .after = 20, .complete = TRUE)) %>% 
+#   filter(numday < 20210901 & numday > 19860201) %>%
+#   group_by(Year, Month) %>%
+#   filter(numday == max(numday))
+#plot(data_SNP500$Date,data_SNP500$aux_PSM, type="l",
+     # xlab = "", ylab = "",
+     # main = "Graph A. Physical Second Moment", font.main = 3)
 ```
 ```{r Price of Co-skewness Risk}
 #The difference from previous estimators (RNSM and PSM) is our COSK price of the risk estimation of Option Implied approach
@@ -1101,6 +1107,13 @@ pdf("Table 3.pdf", width = 10, height = 5)
 dev.off()
 Table_3
 ```
+```{r Saving code}
+require(knitr) # required for knitting from rmd to md
+require(markdown) # required for md to html 
+
+markdownToHTML('corecode.Rmd', 'code_for_presentation.html')
+```
+
 
 
 
